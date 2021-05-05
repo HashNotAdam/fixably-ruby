@@ -25,10 +25,16 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "faraday", "~> 1"
+
+  spec.add_development_dependency "dotenv"
+  spec.add_development_dependency "mutant-rspec", "~> 0.10"
+  spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.10"
-  spec.add_development_dependency "rubocop", "~> 1.12"
+  spec.add_development_dependency "rspec", "~> 3"
+  spec.add_development_dependency "rubocop", "~> 1"
   spec.add_development_dependency "rubocop-performance"
   spec.add_development_dependency "rubocop-rake"
   spec.add_development_dependency "rubocop-rspec"
+  spec.add_development_dependency "vcr", "~> 6"
 end

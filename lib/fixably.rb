@@ -1,8 +1,18 @@
 # frozen_string_literal: true
 
-require_relative "fixably/version"
+require "fixably/config"
+require "fixably/logger"
+require "fixably/resource"
+require "fixably/version"
 
 module Fixably
-  class Error < StandardError; end
-  # Your code goes here...
+  @config = Config.new
+
+  class << self
+    attr_reader :config
+
+    def configure(&_block)
+      yield config
+    end
+  end
 end
