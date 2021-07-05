@@ -2,6 +2,7 @@
 
 require "fixably/config"
 require "fixably/logger"
+require "fixably/interaction"
 require "fixably/resource"
 require "fixably/version"
 

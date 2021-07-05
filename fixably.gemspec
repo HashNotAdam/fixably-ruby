@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "active_interaction", "~> 4"
   spec.add_dependency "faraday", "~> 1"
 
   spec.add_development_dependency "dotenv"
