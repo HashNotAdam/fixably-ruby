@@ -6,6 +6,8 @@ require "fixably/interaction"
 require "fixably/resource"
 require "fixably/version"
 
+require "fixably/validators/filters"
+
 module Fixably
   @config = Config.new
 
