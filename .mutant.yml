@@ -1,0 +1,6 @@
+integration: rspec
+matcher:
+  subjects:
+    - Fixably*
+requires:
+  - fixably
