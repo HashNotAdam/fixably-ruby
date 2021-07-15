@@ -21,5 +21,14 @@ RSpec.describe Fixably do
 
       expect(described_class.config.api_key).to eq "api_key"
     end
+
+    context "when a block is not supplied" do
+      it "raises an ArgumentError" do
+        expect { described_class.configure }.to raise_error(
+          ArgumentError,
+          "configure must be called with a block"
+        )
+      end
+    end
   end
 end

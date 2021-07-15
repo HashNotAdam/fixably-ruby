@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
+require "active_model"
+
 require "fixably/config"
 require "fixably/logger"
-require "fixably/interaction"
-require "fixably/resource"
 require "fixably/version"
-
-require "fixably/validators/filters"
 
 module Fixably
   @config = Config.new
@@ -14,7 +12,11 @@ module Fixably
   class << self
     attr_reader :config
 
-    def configure(&_block)
+    def configure(&block)
+      if block.nil?
+        raise ArgumentError, "configure must be called with a block"
+      end
+
       yield config
     end
   end

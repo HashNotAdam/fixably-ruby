@@ -17,10 +17,12 @@ module Fixably
     def require_error(param)
       raise(
         ArgumentError,
-        "#{param} is required but hasn't been set.\n" \
-          "Fixably.configure do |config|\n" +
-          %(  config.#{param} = "value") + "\n" \
-          "end"
+        <<~MESSAGE
+          #{param} is required but hasn't been set.
+          Fixably.configure do |config|
+            config.#{param} = "value"
+          end
+        MESSAGE
       )
     end
   end
