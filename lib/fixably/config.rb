@@ -1,9 +1,19 @@
 # frozen_string_literal: true
 
+require_relative "logger"
+
 module Fixably
   class Config
     attr_accessor :api_key
     attr_accessor :subdomain
+
+    def logger
+      Logger.logger
+    end
+
+    def logger=(log)
+      Logger.logger = log
+    end
 
     def require(param)
       value = public_send(param)

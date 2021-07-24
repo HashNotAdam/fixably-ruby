@@ -11,6 +11,27 @@ RSpec.describe Fixably::Config do
   let(:api_key) { "api_key" }
   let(:subdomain) { "subdomain" }
 
+  describe "#logger" do
+    let(:logger) { Logger.new(nil) }
+
+    before { allow(Fixably::Logger).to receive(:logger).and_return(logger) }
+
+    it "gets the logger from Fixably::Logger" do
+      expect(described_class.new.logger).to be logger
+    end
+  end
+
+  describe "#logger=" do
+    let(:logger) { Logger.new(nil) }
+
+    before { allow(Fixably::Logger).to receive(:logger=) }
+
+    it "set the logger via Fixably::Logger" do
+      described_class.new.logger = logger
+      expect(Fixably::Logger).to have_received(:logger=).with(logger)
+    end
+  end
+
   describe "#require" do
     it "returns the value of the requested parameter" do
       expect(instance.require(:api_key)).to eq(api_key)

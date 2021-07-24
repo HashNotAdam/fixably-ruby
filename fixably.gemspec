@@ -25,9 +25,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "active_interaction", "~> 4"
-  spec.add_dependency "active_interaction-extras", "~> 1"
-  spec.add_dependency "faraday", "~> 1"
+  spec.add_dependency "activeresource", "~> 5"
 
   spec.add_development_dependency "dotenv"
   spec.add_development_dependency "mutant-rspec", "~> 0.10"
@@ -38,5 +36,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rubocop-performance"
   spec.add_development_dependency "rubocop-rake"
   spec.add_development_dependency "rubocop-rspec"
-  spec.add_development_dependency "vcr", "~> 6"
 end

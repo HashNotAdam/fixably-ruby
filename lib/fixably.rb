@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
-require "active_model"
+require "active_resource"
+require_relative "fixably/active_resource/paginated_collection"
+require_relative "fixably/active_resource/base"
 
 require "fixably/config"
 require "fixably/logger"
 require "fixably/version"
+
+require_relative "fixably/model"
 
 module Fixably
   @config = Config.new
@@ -18,6 +22,10 @@ module Fixably
       end
 
       yield config
+    end
+
+    def logger
+      config.logger
     end
   end
 end

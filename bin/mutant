@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+MUTATION_TESTING=true bundle exec mutant run $@

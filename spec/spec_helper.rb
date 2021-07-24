@@ -39,9 +39,3 @@ end
 Dir["#{File.dirname(__FILE__)}/helpers/**/*.rb"].each { |f| require f }
 
 Fixably::Helpers::Config.configure
-
-require "vcr"
-VCR.configure do |config|
-  config.cassette_library_dir = "spec/vcr_cassettes"
-  config.hook_into :faraday
-end

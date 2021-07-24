@@ -31,4 +31,24 @@ RSpec.describe Fixably do
       end
     end
   end
+
+  describe ".logger" do
+    let(:config_spy) { Fixably::Config.new }
+    let(:previous_config) { described_class.config }
+    let(:logger) { Logger.new(nil) }
+
+    before do
+      previous_config
+      described_class.instance_variable_set(:@config, config_spy)
+      allow(config_spy).to receive(:logger).and_return(logger)
+    end
+
+    after do
+      described_class.instance_variable_set(:@config, previous_config)
+    end
+
+    it "returns the current logger as defined in the configuration" do
+      expect(described_class.logger).to be logger
+    end
+  end
 end

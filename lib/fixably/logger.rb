@@ -10,6 +10,8 @@ module Fixably
     def_delegators :logger, *::Logger.instance_methods(false)
 
     class << self
+      attr_writer :logger
+
       def logger
         @logger ||=
           if defined?(Rails.logger)

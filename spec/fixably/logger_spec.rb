@@ -1,34 +1,77 @@
 # frozen_string_literal: true
 
 RSpec.describe Fixably::Logger do
-  after { described_class.instance_variable_set(:@logger, nil) }
+  describe "#logger" do
+    after { described_class.logger = nil }
 
-  context "when mounted into a Rails app" do
-    before do
-      rails_class = Class.new do
-        def self.logger
-          @logger ||= ::Logger.new($stdout)
+    context "when used in a Rails app" do
+      context "when Rails responds to logger" do
+        let(:logger) { Logger.new(nil) }
+
+        before { stub_const("Rails", OpenStruct.new(logger: logger)) }
+
+        it "uses the Rails logger" do
+          expect(described_class.logger).to eq logger
         end
       end
-      Object.const_set(:Rails, rails_class)
+
+      context "when Rails does not respond to logger" do
+        before { stub_const("Rails", OpenStruct.new) }
+
+        it "uses the Ruby logger" do
+          expect(described_class.logger).to be_a(Logger)
+        end
+
+        it "logs to stdout" do
+          logger = described_class.logger
+          log_location = logger.instance_variable_get(:@logdev).dev
+          expect(log_location).to eq($stdout)
+        end
+
+        it "sets the log level to WARN" do
+          expect(described_class.logger.level).to be(::Logger::WARN)
+        end
+      end
     end
 
-    after do
-      Object.__send__(:remove_const, :Rails) if Object.const_defined?(:Rails)
+    context "when used outside of a Rails app" do
+      it "uses the Ruby logger" do
+        expect(described_class.logger).to be_a(Logger)
+      end
+
+      it "sets the log level to WARN" do
+        expect(described_class.logger.level).to be(::Logger::WARN)
+      end
+
+      it "logs to stdout" do
+        logger = described_class.logger
+        log_location = logger.instance_variable_get(:@logdev).dev
+        expect(log_location).to eq($stdout)
+      end
     end
 
-    it "delegates the logging to Rails" do
-      expect(described_class.logger).to eq(Rails.logger)
+    context "when the logger is set by the user" do
+      let(:logger) { OpenStruct.new }
+
+      before { described_class.logger = logger }
+
+      it "uses the user's logger" do
+        expect(described_class.logger).to be(logger)
+      end
     end
   end
 
-  context "when being used outside of Rails" do
-    it "initializes an instance of the Ruby Logger" do
-      expect(described_class.logger).to be_a(::Logger)
+  describe "message delegation" do
+    let(:logger) { OpenStruct.new(info: nil) }
+
+    before do
+      allow(logger).to receive(:info)
+      described_class.logger = logger
     end
 
-    it "sets the log level to WARN" do
-      expect(described_class.logger.level).to eq(::Logger::WARN)
+    it "delegates messages to the logger" do
+      described_class.info("Message")
+      expect(logger).to have_received(:info).with("Message")
     end
   end
 end
