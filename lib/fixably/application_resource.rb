@@ -63,8 +63,15 @@ module Fixably
       end
 
       def expand_associations(arguments)
+        if arguments[:expand].present? && arguments[:expand].is_a?(String)
+          return arguments[:expand]
+        end
+
         associations = arguments.fetch(:expand, []).map { "#{_1}(items)" }
-        %w[items].concat(associations).join(",")
+        result = Set.new
+        result << "items"
+        result.merge(associations)
+        result.join(",")
       end
 
       def api_key

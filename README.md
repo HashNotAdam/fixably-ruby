@@ -142,6 +142,37 @@ customers = Fixably::Customer.includes(:children).all
 # expand=items,children(items)
 ```
 
+## Pagination
+
+When making a request that could return multiple results, you will receive a
+paginated collection. You can pass `limit` and `offset` parameters to manually
+manage pagination or use the helper methods:
+```ruby
+customers = Fixably::Customer.where(company: "Education Advantage") # PaginatedCollection
+customers.limit # => 25
+customers.offset # => 0
+
+customers.each.count # => 25
+
+all_customers = []
+customers.paginated_each { all_customers << _1 }
+all_customers.count # => 100
+
+all_customers = customers.paginated_map
+all_customers.count # => 100
+```
+
+Remember to be respectful when using this feature; requesting all records has
+the potential to send a lot of requests. If you need to download a lot of data,
+it is probably worth your time to tweak the limit to pull in bigger batches:
+```ruby
+customers = Fixably::Customer.all(limit: 100)
+customers.limit # => 100
+customers.offset # => 0
+
+customers.each.count # => 25
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on

@@ -20,6 +20,14 @@ RSpec.describe Fixably::ApplicationResource do
         expect(ActiveResource::Base).to have_received(:find).
           with(1, params: { expand: "items,association(items)" })
       end
+
+      context "when expand is a string" do
+        it "passes it on unmodified" do
+          described_class.find(1, expand: "do not modify")
+          expect(ActiveResource::Base).to have_received(:find).
+            with(1, params: { expand: "do not modify" })
+        end
+      end
     end
 
     context "when options are supplied" do
