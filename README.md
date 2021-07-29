@@ -49,6 +49,99 @@ Fixably.configure do |config|
 end
 ```
 
+## Usage
+
+This gem utilises Active Resource under the hood to provide a Rails-like
+interface.
+
+```ruby
+customers = Fixably::Customer.all
+customer = Fixably::Customer.find(1000)
+customer = Fixably::Customer.first
+customer = Fixably::Customer.last
+
+customers = Fixably::Customer.where(first_name: "HashNotAdam")
+customer = customers.first
+customer.first_name = "Adam"
+customer.save!
+
+customer = Fixably::Customer.create!(
+  first_name: "Adam",
+  last_name: "Rice",
+  email: "development@hashnotadam.com"
+)
+```
+
+Where there are known required fields, you can test validity or catch errors if
+using the bang functions.
+
+```ruby
+customer = Fixably::Customer.new(first_name: "HashNotAdam")
+customer.valid? # => false
+customer.errors.full_messages.to_sentence # => Either email or phone must be present
+
+customer.save # => false
+customer.save! # Exception: Failed. (ActiveResource::ResourceInvalid)
+
+customer = Fixably::Customer.create(first_name: "HashNotAdam")
+customer.persisted? # => false
+
+customer = Fixably::Customer.create!(first_name: "HashNotAdam") # Exception: Failed. (ActiveResource::ResourceInvalid)
+```
+
+If you need to know the attributes of a model, you can request the schema. It
+should be noted that the schema only includes fields that Fixably accept when
+creating or updating record. For example, if you load a customer, the API will
+include tags but Fixably does not support modifying the tags attribute via the
+API.
+
+```ruby
+Fixably::Customer.schema
+# =>
+# {"id"=>"integer",
+#  "first_name"=>"string",
+#  "last_name"=>"string",
+#  "company"=>"string",
+#  "phone"=>"string",
+#  "email"=>"string",
+#  "business_id"=>"string",
+#  "language"=>"string",
+#  "provider"=>"string",
+#  "identifier"=>"string"}
+```
+
+Currently supported resources:
+- Fixably::Customer
+
+## Link expansion
+
+Fixably actively avoid sending information about associations or even the data
+for a collection ([Fixably docs](https://docs.fixably.com/?http#link-expansion)).
+For example, if you were to send a request for a collection of customers, you
+would receive something like:
+```ruby
+{
+  "limit": 25,
+  "offset": 0,
+  "totalItems": 100,
+  "items": [
+    { "href": "https://subdomain.fixably.com/api/v3/customers/1001" },
+    { "href": "https://subdomain.fixably.com/api/v3/customers/1002" },
+    { "href": "https://subdomain.fixably.com/api/v3/customers/1003" },
+    ...
+  ]
+}
+```
+
+This gem will always pass "expand=items" with requests which expands the first
+layer of information. If you would also like to load associations, you can
+use the `includes` method with the name of the association. For example:
+
+```ruby
+customers = Fixably::Customer.includes(:children).all
+# expand=items,children(items)
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on
@@ -64,34 +157,21 @@ If you would like to add a feature or fix a bug:
 - commit your changes (be sure to include tests); and
 - create a pull request to merge your branch into main.
 
+Be aware that this gem monkey patches Active Resource. As such, you may need to
+familiarise yourself with `lib/fixably/active_resource/base.rb`.
+
 ## Testing
 
-Since it is necessary to authenticate with Fixably to test API resources,
-credentials are required. The dotenv gem is loaded when tests are run and will
-look for a .env file in the root directory. A .env.example file has been
-supplied so you copy it to .env and replace the example values:
+The test suite does not make any requests, however, it does test up to the point
+that the request would be made. This means that many tests will fail unless
+a subdomain and API key are configured.
+
+The dotenv gem is loaded when tests are run and will look for a .env file in the
+root directory. A .env.example file has been supplied so you copy it to .env and
+replace the example values:
 
 ```sh
 cp .env.example .env
-```
-
-Making production API calls while testing can have undesirable side-effects so
-[VCR](https://github.com/vcr/vcr) is used to record the responses from Fixably
-and reply them in subsequent test runs.
-
-Please remember to remove any personal details from the cassette. For example,
-replace "[your-subdomain].fixably.com" with "demo.fixably.com".
-
-The VCR recording mode is set to :none, which does not allow new recordings to
-occur. This avoids unexpected live requests to Fixably. If you are creating or
-updating a test, you can temporarily set a different record mode for that test:
-```ruby
-it "does important things" do
-  VCR.use_cassette("important things", record: :once) do
-    do_some_things
-    expect(important_things)
-  end
-end
 ```
 
 ## License

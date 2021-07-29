@@ -1,25 +1,51 @@
 # frozen_string_literal: true
 
-ActiveResource::Base.singleton_class.class_eval do
-  private
+module ActiveResource
+  class Base
+    class << self
+      private
 
-  alias_method :original_instantiate_collection, :instantiate_collection
+      alias original_instantiate_record instantiate_record
 
-  # Active Resource expects collection responses to be an array of elements
-  # but Fixably includes the collection in an "items" key
-  def instantiate_collection(
-    collection_wrapper, original_params = {}, prefix_options = {}
-  )
-    collection = collection_wrapper.fetch("items")
-    result = original_instantiate_collection(
-      collection, original_params, prefix_options
-    )
-    result.instance_variable_set(:@limit, collection_wrapper.fetch("limit"))
-    result.instance_variable_set(:@offset, collection_wrapper.fetch("offset"))
-    result.instance_variable_set(
-      :@total_items, collection_wrapper.fetch("totalItems")
-    )
-    result
+      # Fixably uses camel case keys but it's more Ruby-like to use underscores
+      def instantiate_record(record, prefix_options = {})
+        underscored_record = record.deep_transform_keys(&:underscore)
+        original_instantiate_record(underscored_record, prefix_options)
+      end
+
+      alias original_query_string query_string
+
+      # Fixably expects all searches to be sent under a singular query parameter
+      # q=search1,search2,attribute:search3
+      def query_string(options)
+        opts = {}
+
+        non_query_parameters.each do
+          opts[_1] = options.fetch(_1) if options[_1]
+        end
+
+        f = filters(options)
+        opts[:q] = f.join(",") unless f.count.zero?
+
+        original_query_string(opts)
+      end
+
+      def filters(options)
+        options.each_with_object([]) do |(key, value), array|
+          next if non_query_parameters.include?(key)
+
+          array <<
+            if key.equal?(:filter)
+              value
+            else
+              camel_key = key.to_s.camelize(:lower)
+              "#{camel_key}:#{value}"
+            end
+        end
+      end
+
+      def non_query_parameters = %i[expand limit offset page]
+    end
   end
 end
 

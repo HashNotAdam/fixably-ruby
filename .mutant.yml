@@ -2,5 +2,12 @@ integration: rspec
 matcher:
   subjects:
     - Fixably*
+  ignore:
+    - Fixably::ApplicationResource#encode
+    - Fixably::ApplicationResource.expand_associations
+    - Fixably::ApplicationResource#remove_ids
+    - Fixably::ApplicationResource#remove_has_many_associations
+    - Fixably::Customer*
+    - Fixably::ResourceLazyLoader*
 requires:
   - fixably

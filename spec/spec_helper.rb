@@ -2,8 +2,11 @@
 
 require "fixably"
 require "dotenv/load"
+require "pry-byebug"
 
 ENV["ENV"] = "test"
+
+Dir["#{__dir__}/support/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

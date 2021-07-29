@@ -8,7 +8,8 @@ require "fixably/config"
 require "fixably/logger"
 require "fixably/version"
 
-require_relative "fixably/model"
+require_relative "fixably/application_resource"
+require_relative "fixably/resources/customer"
 
 module Fixably
   @config = Config.new
