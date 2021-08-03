@@ -110,8 +110,13 @@ Fixably::Customer.schema
 #  "identifier"=>"string"}
 ```
 
+We only use a small subset of the available resources so not all of the API is
+supported, however, this gem is designed in such a way to make it easy to add
+new endpoints. If you need access to another resource, let's chat.
+
 Currently supported resources:
-- Fixably::Customer
+- Fixably::Customer ([documentation](docs/customer.md))
+- Fixably::User ([documentation](docs/user.md))
 
 ## Link expansion
 

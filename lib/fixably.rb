@@ -10,6 +10,7 @@ require "fixably/version"
 
 require_relative "fixably/application_resource"
 require_relative "fixably/resources/customer"
+require_relative "fixably/resources/user"
 
 module Fixably
   @config = Config.new
