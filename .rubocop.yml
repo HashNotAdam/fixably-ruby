@@ -90,6 +90,9 @@ Security/Eval:
 Style/AccessorGrouping:
   Enabled: false
 
+Style/AccessModifierDeclarations:
+  Enabled: false
+
 Style/AsciiComments:
   Enabled: false
 

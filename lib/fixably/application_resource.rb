@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "finders"
 require_relative "resource_lazy_loader"
 
 module Fixably
@@ -7,30 +8,7 @@ module Fixably
     self.include_format_in_path = false
 
     class << self
-      def find(*arguments)
-        scope = arguments.slice(0)
-        args = parametize_arguments(arguments.slice(1))
-        super(scope, args)
-      end
-
-      def first(*arguments)
-        args = arguments.first || {}
-        args[:limit] = 1
-        super(args)
-      end
-
-      def last(*arguments)
-        args = parametize_arguments(arguments.first)
-        collection = find_every(args)
-        return collection.last unless collection.offset.zero?
-        return collection.last if collection.total_items <= collection.limit
-
-        super(limit: 1, offset: collection.total_items - 1)
-      end
-
-      def where(clauses = {})
-        find(:all, clauses)
-      end
+      include Finders
 
       def headers
         result = super()
@@ -54,25 +32,6 @@ module Fixably
       end
 
       private
-
-      def parametize_arguments(arguments)
-        arguments ||= {}
-        params = arguments.dup
-        params[:expand] = expand_associations(params)
-        { params: params }
-      end
-
-      def expand_associations(arguments)
-        if arguments[:expand].present? && arguments[:expand].is_a?(String)
-          return arguments[:expand]
-        end
-
-        associations = arguments.fetch(:expand, []).map { "#{_1}(items)" }
-        result = Set.new
-        result << "items"
-        result.merge(associations)
-        result.join(",")
-      end
 
       def api_key
         Fixably.config.require(:api_key)
