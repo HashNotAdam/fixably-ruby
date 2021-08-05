@@ -2,6 +2,8 @@
 
 module Fixably
   class Customer < ApplicationResource
+    actions %i[create list show]
+
     validate :either_email_or_phone_set
 
     schema do
@@ -22,18 +24,10 @@ module Fixably
 
     has_many :children, class_name: "fixably/customer"
 
-    def self.delete(_id = nil, _options = nil)
-      raise "Deleting customers is not supported"
-    end
-
     def either_email_or_phone_set
       return if email.present? || phone.present?
 
       errors.add(:base, "Either email or phone must be present")
-    end
-
-    def destroy
-      raise "Deleting customers is not supported"
     end
 
     def encode(options = nil, attrs: nil)

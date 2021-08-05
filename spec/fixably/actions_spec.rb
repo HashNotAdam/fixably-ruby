@@ -1,10 +1,55 @@
 # frozen_string_literal: true
 
-RSpec.describe Fixably::Finders do
-  let(:described_class) { Class.new(Fixably::ApplicationResource) }
+RSpec.describe Fixably::Actions do
+  let(:action_policy_double) { instance_double(Fixably::ActionPolicy) }
+  let(:described_class) do
+    Class.new(ActiveResource::Base) do
+      include Fixably::Actions
+    end
+  end
+
+  before do
+    allow(Fixably::ActionPolicy).
+      to receive(:new).and_return(action_policy_double)
+  end
+
+  describe ".delete" do
+    before do
+      allow(action_policy_double).to receive(:delete!).and_return(true)
+      allow(ActiveResource::Base).to receive(:delete)
+    end
+
+    it "validates that the request is supported" do
+      described_class.delete(1)
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:delete!)
+    end
+
+    it "forwards the message to the superclass" do
+      described_class.delete(1)
+      expect(ActiveResource::Base).to have_received(:delete).with(1, {})
+    end
+
+    it "forwards on any supplied options" do
+      described_class.delete(1, option: "A")
+      expect(ActiveResource::Base).
+        to have_received(:delete).with(1, option: "A")
+    end
+  end
 
   describe ".find" do
-    before { allow(ActiveResource::Base).to receive(:find) }
+    before do
+      allow(action_policy_double).to receive(:show!).and_return(true)
+      allow(ActiveResource::Base).to receive(:find)
+    end
+
+    it "validates that the request is supported" do
+      described_class.find(1)
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:show!)
+    end
 
     it "passes the message to ActiveResource with a request to expand items" do
       described_class.find(1)
@@ -47,7 +92,17 @@ RSpec.describe Fixably::Finders do
   end
 
   describe ".first" do
-    before { allow(ActiveResource::Base).to receive(:first) }
+    before do
+      allow(action_policy_double).to receive(:list!).and_return(true)
+      allow(ActiveResource::Base).to receive(:first)
+    end
+
+    it "validates that the request is supported" do
+      described_class.first
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:list!)
+    end
 
     it "sets the limit parameter to 1 before passing on the message" do
       described_class.first
@@ -64,8 +119,22 @@ RSpec.describe Fixably::Finders do
   end
 
   describe ".last" do
+    let(:collection) do
+      Fixably::ActiveResource::PaginatedCollection.new(
+        { "limit" => 25, "offset" => 0, "totalItems" => 0, "items" => [] }
+      )
+    end
+
     before do
+      allow(action_policy_double).to receive(:list!).and_return(true)
       allow(ActiveResource::Base).to receive(:find_every).and_return(collection)
+    end
+
+    it "validates that the request is supported" do
+      described_class.last
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:list!)
     end
 
     context "when there are no results for the search" do
@@ -202,6 +271,18 @@ RSpec.describe Fixably::Finders do
   end
 
   describe ".where" do
+    before do
+      allow(action_policy_double).to receive(:list!).and_return(true)
+    end
+
+    it "validates that the request is supported" do
+      allow(described_class).to receive(:find)
+      described_class.where
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:list!)
+    end
+
     it "forwards the message to find" do
       allow(described_class).to receive(:find)
       described_class.where(argument1: "A", argument2: "B")
@@ -300,6 +381,30 @@ RSpec.describe Fixably::Finders do
           )
         end
       end
+    end
+  end
+
+  describe "#destroy" do
+    let(:action_policy_double) { instance_double(Fixably::ActionPolicy) }
+    let(:instance) { described_class.new }
+
+    before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
+      allow(action_policy_double).to receive(:delete!).and_return(true)
+      allow(instance).to receive(:run_callbacks)
+    end
+
+    it "validates that the request is supported" do
+      instance.destroy
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:delete!)
+    end
+
+    it "forwards the message to the superclass" do
+      instance.destroy
+      expect(instance).to have_received(:run_callbacks).with(:destroy)
     end
   end
 end

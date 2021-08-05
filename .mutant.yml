@@ -6,6 +6,7 @@ matcher:
     - Fixably::ApplicationResource#encode
     - Fixably::ApplicationResource.expand_associations
     - Fixably::ActiveResource::PaginatedCollection#paginated_each
+    - Fixably::ApplicationResource.format_actions
     - Fixably::ApplicationResource#remove_ids
     - Fixably::ApplicationResource#remove_has_many_associations
     - Fixably::Customer*

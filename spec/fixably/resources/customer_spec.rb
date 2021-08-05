@@ -158,14 +158,14 @@ RSpec.describe Fixably::Customer do
 
   describe ".delete" do
     it "raises an error" do
-      expect { described_class.delete }.to raise_error(
-        RuntimeError, "Deleting customers is not supported"
+      expect { described_class.delete(1) }.to raise_error(
+        Fixably::UnsupportedError, "Fixably does not support deleting customers"
       )
     end
 
     it "accepts an id and options for interface compatibility" do
       expect { described_class.delete(1, argument: "A") }.to raise_error(
-        RuntimeError, "Deleting customers is not supported"
+        Fixably::UnsupportedError, "Fixably does not support deleting customers"
       )
     end
   end
@@ -173,7 +173,7 @@ RSpec.describe Fixably::Customer do
   describe "#destroy" do
     it "raises an error" do
       expect { described_class.new.destroy }.to raise_error(
-        RuntimeError, "Deleting customers is not supported"
+        Fixably::UnsupportedError, "Fixably does not support deleting customers"
       )
     end
   end

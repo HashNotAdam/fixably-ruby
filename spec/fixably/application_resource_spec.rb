@@ -5,6 +5,99 @@ RSpec.describe Fixably::ApplicationResource do
     expect(described_class.include_format_in_path).to be false
   end
 
+  describe ".actions" do
+    let(:all_actions) { %i[create delete list show update] }
+    let(:resource) { Class.new(described_class) }
+
+    context "when it is called on #{described_class.name}" do
+      specify do
+        expect { described_class.actions }.to raise_error(
+          RuntimeError,
+          "actions can only be called on a sub-class"
+        )
+      end
+    end
+
+    context "when the resource has no actions" do
+      it "returns an empty array" do
+        expect(resource.actions).to eq([])
+      end
+
+      it "freezes the array" do
+        expect(resource.actions).to be_frozen
+      end
+    end
+
+    context "when the resource has actions" do
+      before { resource.instance_variable_set(:@actions, all_actions) }
+
+      it "returns the actions array" do
+        expect(resource.actions).to eq(all_actions)
+      end
+    end
+
+    context "when an array is supplied" do
+      it "stores an actions array" do
+        resource.actions(all_actions)
+        expect(resource.instance_variable_get(:@actions)).to eq(all_actions)
+      end
+
+      it "freezes the array" do
+        resource.actions(all_actions)
+        expect(resource.instance_variable_get(:@actions)).to be_frozen
+      end
+
+      context "when an unexpected action is supplied" do
+        it "raises an ArgumentError" do
+          expect { resource.actions(%i[unknown]) }.to raise_error(
+            ArgumentError,
+            "Unsupported action, unknown, supplied"
+          )
+        end
+      end
+
+      context "when actions are supplied as strings" do
+        it "converts the string to a symbol" do
+          actions = all_actions.map(&:to_s)
+          resource.actions(actions)
+          expect(resource.instance_variable_get(:@actions)).to eq(all_actions)
+        end
+      end
+    end
+
+    context "when a symbol is supplied" do
+      it "stores the action in an array" do
+        resource.actions(:create)
+        expect(resource.instance_variable_get(:@actions)).to eq([:create])
+      end
+    end
+
+    context "when a string is supplied" do
+      it "stores the action as a symbol in an array" do
+        resource.actions("create")
+        expect(resource.instance_variable_get(:@actions)).to eq([:create])
+      end
+    end
+
+    context "when supplying something that can't be converted into an Array" do
+      it "raises an ArgumentError" do
+        expect { resource.actions(OpenStruct.new) }.to raise_error(
+          ArgumentError,
+          "actions should be able to be converted into an Array or a Symbol"
+        )
+      end
+    end
+
+    context "when supplying values that can't be converted into Symbols" do
+      it "raises an NoMethodError" do
+        expect { resource.actions([nil]) }.to raise_error(
+          NoMethodError,
+          "undefined method `to_sym' for nil:NilClass"
+        )
+      end
+    end
+  end
+
   describe ".headers" do
     it "adds the API authorisation to the default headers" do
       api_key = Fixably.config.require(:api_key)
