@@ -40,7 +40,13 @@ module Fixably
       protected
 
       def site_url
-        "https://#{subdomain}.fixably.com/api/#{api_version}"
+        base_url = "https://#{subdomain}.fixably.com/api/#{api_version}"
+
+        name_parts = name.split("::")
+        return base_url if name_parts.length.equal?(2)
+
+        parent_resource = name_parts[1].downcase
+        "#{base_url}/#{parent_resource.pluralize}/:#{parent_resource}_id"
       end
 
       private
@@ -89,7 +95,7 @@ module Fixably
       attrs ||= attributes
       remove_ids(attrs)
       remove_has_many_associations(attrs)
-      attrs.delete("href")
+      remove_unallowed_parameters(attrs)
       attrs = attrs.deep_transform_keys { _1.camelize(:lower) }
       attrs.public_send("to_#{self.class.format.extension}")
     end
@@ -107,6 +113,8 @@ module Fixably
 
       super(resp)
     end
+
+    def remove_on_encode = []
 
     private
 
@@ -126,6 +134,11 @@ module Fixably
       reflections.select { _2.macro.equal?(:has_many) }.keys.each do
         attrs.delete(_1)
       end
+    end
+
+    def remove_unallowed_parameters(attrs)
+      %w[href].concat(remove_on_encode).each { attrs.delete(_1) }
+      attrs
     end
   end
 end

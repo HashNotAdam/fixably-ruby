@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "action_policy"
+require_relative "argument_parameterisation"
 
 module Fixably
   module Actions
@@ -9,10 +10,33 @@ module Fixably
     end
 
     module ClassMethods
+      include ArgumentParameterisation
+
+      def all(*arguments)
+        ActionPolicy.new(resource: self).list!
+        super(*arguments)
+      end
+
+      def create(attributes = {})
+        ActionPolicy.new(resource: self).create!
+        super(attributes)
+      end
+
+      def create!(attributes = {})
+        ActionPolicy.new(resource: self).create!
+        super(attributes)
+      end
+
       def delete(id, options = {})
         ActionPolicy.new(resource: self).delete!
-
         super(id, options)
+      end
+
+      def exists?(id, options = {})
+        find(id, options)
+        true
+      rescue ::ActiveResource::ResourceNotFound
+        false
       end
 
       def find(*arguments)
@@ -20,7 +44,8 @@ module Fixably
 
         ActionPolicy.new(resource: self).show! unless scope.is_a?(Symbol)
 
-        args = parametize_arguments(arguments.slice(1))
+        args = parametize_arguments(scope, arguments.slice(1))
+
         super(scope, args)
       end
 
@@ -35,12 +60,13 @@ module Fixably
       def last(*arguments)
         ActionPolicy.new(resource: self).list!
 
-        args = parametize_arguments(arguments.first)
+        args = parametize_arguments(:last, arguments.first)
         collection = find_every(args)
         return collection.last unless collection.offset.zero?
         return collection.last if collection.total_items <= collection.limit
 
-        super(limit: 1, offset: collection.total_items - 1)
+        args = args[:params].merge(limit: 1, offset: collection.total_items - 1)
+        super(args)
       end
 
       def where(clauses = {})
@@ -49,63 +75,33 @@ module Fixably
         arguments = stringify_array_values(clauses)
         find(:all, arguments)
       end
-
-      private
-
-      def parametize_arguments(arguments)
-        arguments ||= {}
-        params = arguments.dup
-        params[:expand] = expand_associations(params)
-        { params: params }
-      end
-
-      def expand_associations(arguments)
-        if arguments[:expand].present? && arguments[:expand].is_a?(String)
-          return arguments[:expand]
-        end
-
-        associations = arguments.fetch(:expand, []).map { "#{_1}(items)" }
-        result = Set.new
-        result << "items"
-        result.merge(associations)
-        result.join(",")
-      end
-
-      def stringify_array_values(arguments)
-        arguments.dup.tap do |args|
-          args.each do |attribute, value|
-            next unless value.is_a?(Array)
-
-            validate_array_value!(attribute, value)
-            value << nil if value.length.equal?(1)
-            args[attribute] = "[#{value.map { stringify(_1) }.join(",")}]"
-          end
-        end
-      end
-
-      def validate_array_value!(attribute, value)
-        return if value.length.positive? && value.length <= 2
-
-        raise(
-          ArgumentError,
-          "Ranged searches should have either 1 or 2 values but " \
-          "#{attribute} has #{value.length}"
-        )
-      end
-
-      def stringify(value)
-        if value.respond_to?(:strftime)
-          value.strftime("%F")
-        else
-          value
-        end
-      end
     end
 
     def destroy
       ActionPolicy.new(resource: self).delete!
+      super()
+    end
+
+    def save(validate: true)
+      if validate
+        message = new? ? :create! : :update!
+        ActionPolicy.new(resource: self).public_send(message)
+      end
 
       super()
     end
+
+    # rubocop:disable Style/RaiseArgs
+    def save!
+      if new?
+        ActionPolicy.new(resource: self).create!
+      else
+        ActionPolicy.new(resource: self).update!
+      end
+
+      save(validate: false) ||
+        raise(::ActiveResource::ResourceInvalid.new(self))
+    end
+    # rubocop:enable Style/RaiseArgs
   end
 end

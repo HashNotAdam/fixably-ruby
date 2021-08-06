@@ -2,19 +2,150 @@
 
 RSpec.describe Fixably::Actions do
   let(:action_policy_double) { instance_double(Fixably::ActionPolicy) }
+  let(:fake_has_one) do
+    Class.new(Fixably::ApplicationResource) do
+      def self.name = "FakeHasOne"
+    end
+  end
+  let(:fake_has_many) do
+    Class.new(Fixably::ApplicationResource) do
+      def self.name = "FakeHasMany"
+    end
+  end
   let(:described_class) do
-    Class.new(ActiveResource::Base) do
-      include Fixably::Actions
+    has_one_class_name = fake_has_one.name.underscore
+    has_many_class_name = fake_has_one.name.underscore
+
+    Class.new(Fixably::ApplicationResource) do
+      def self.name = "FakeCustomer"
+
+      has_one :association, class_name: has_one_class_name
+      has_many :relation, class_name: has_many_class_name
+    end
+  end
+  let(:instance) { described_class.new }
+
+  describe ".all" do
+    before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
+      allow(action_policy_double).to receive(:list!).and_return(true)
+      allow(ActiveResource::Base).to receive(:all)
+    end
+
+    it "validates that the request is supported" do
+      described_class.all
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:list!)
+    end
+
+    it "forwards the message to the superclass" do
+      described_class.all(argument1: "A", argument2: "B")
+      expect(ActiveResource::Base).
+        to have_received(:all).with(argument1: "A", argument2: "B")
+    end
+
+    context "when no arguments are supplied" do
+      it "passes no arguments" do
+        described_class.all
+        expect(ActiveResource::Base).to have_received(:all).with(no_args)
+      end
     end
   end
 
-  before do
-    allow(Fixably::ActionPolicy).
-      to receive(:new).and_return(action_policy_double)
+  describe ".create" do
+    before { allow(ActiveResource::Base).to receive(:create) }
+
+    it "validates that the request is supported" do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
+      allow(action_policy_double).to receive(:create!)
+
+      described_class.create
+
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:create!)
+    end
+
+    context "when the create action is supported" do
+      before do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+        allow(action_policy_double).to receive(:create!).and_return(true)
+      end
+
+      it "forwards the message to the superclass" do
+        described_class.create
+        expect(ActiveResource::Base).to have_received(:create).with({})
+      end
+
+      it "forwards on any supplied options" do
+        described_class.create(option1: "A", option2: "B")
+        expect(ActiveResource::Base).
+          to have_received(:create).with(option1: "A", option2: "B")
+      end
+    end
+
+    context "when the create action is not supported" do
+      it "raises an UnsupportedError" do
+        expect { described_class.create }.to raise_error(
+          Fixably::UnsupportedError,
+          "Fixably does not support creating fake customers"
+        )
+      end
+    end
+  end
+
+  describe ".create!" do
+    before { allow(ActiveResource::Base).to receive(:create!) }
+
+    it "validates that the request is supported" do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
+      allow(action_policy_double).to receive(:create!)
+
+      described_class.create!
+
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:create!)
+    end
+
+    context "when the create action is supported" do
+      before do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+        allow(action_policy_double).to receive(:create!).and_return(true)
+      end
+
+      it "forwards the message to the superclass" do
+        described_class.create!
+        expect(ActiveResource::Base).to have_received(:create!).with({})
+      end
+
+      it "forwards on any supplied options" do
+        described_class.create!(option1: "A", option2: "B")
+        expect(ActiveResource::Base).
+          to have_received(:create!).with(option1: "A", option2: "B")
+      end
+    end
+
+    context "when the create action is not supported" do
+      it "raises an UnsupportedError" do
+        expect { described_class.create! }.to raise_error(
+          Fixably::UnsupportedError,
+          "Fixably does not support creating fake customers"
+        )
+      end
+    end
   end
 
   describe ".delete" do
     before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:delete!).and_return(true)
       allow(ActiveResource::Base).to receive(:delete)
     end
@@ -38,8 +169,54 @@ RSpec.describe Fixably::Actions do
     end
   end
 
+  describe ".exists?" do
+    before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
+      allow(action_policy_double).to receive(:show!).and_return(true)
+      allow(ActiveResource::Base).to receive(:find)
+    end
+
+    it "validates that the request is supported" do
+      described_class.exists?(1)
+      expect(Fixably::ActionPolicy).
+        to have_received(:new).with(resource: described_class)
+      expect(action_policy_double).to have_received(:show!)
+    end
+
+    it "attempts to find the record" do
+      allow(described_class).to receive(:find)
+      described_class.exists?(1, argument1: "A", argument2: "B")
+      expect(described_class).
+        to have_received(:find).with(1, argument1: "A", argument2: "B")
+    end
+
+    context "when the record exist" do
+      before { allow(described_class).to receive(:find).and_return({ a: "a" }) }
+
+      specify do
+        result = described_class.exists?(1)
+        expect(result).to be true
+      end
+    end
+
+    context "when the record does not exist" do
+      before do
+        error = ::ActiveResource::ResourceNotFound.new({})
+        allow(described_class).to receive(:find).and_raise(error)
+      end
+
+      specify do
+        result = described_class.exists?(1)
+        expect(result).to be false
+      end
+    end
+  end
+
   describe ".find" do
     before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:show!).and_return(true)
       allow(ActiveResource::Base).to receive(:find)
     end
@@ -54,14 +231,14 @@ RSpec.describe Fixably::Actions do
     it "passes the message to ActiveResource with a request to expand items" do
       described_class.find(1)
       expect(ActiveResource::Base).to have_received(:find).
-        with(1, params: { expand: "items" })
+        with(1, params: {})
     end
 
     context "when expanded associations are supplied" do
       it "merges the supplied associations with items" do
-        described_class.find(1, expand: [:association])
+        described_class.find(1, expand: %i[association relation])
         expect(ActiveResource::Base).to have_received(:find).
-          with(1, params: { expand: "items,association(items)" })
+          with(1, params: { expand: "association,relation(items)" })
       end
 
       context "when expand is a string" do
@@ -79,7 +256,7 @@ RSpec.describe Fixably::Actions do
         expect(ActiveResource::Base).to have_received(:find).
           with(
             1,
-            { params: { expand: "items", option1: "A", option2: "B" } }
+            { params: { option1: "A", option2: "B" } }
           )
       end
 
@@ -93,6 +270,8 @@ RSpec.describe Fixably::Actions do
 
   describe ".first" do
     before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:list!).and_return(true)
       allow(ActiveResource::Base).to receive(:first)
     end
@@ -126,6 +305,8 @@ RSpec.describe Fixably::Actions do
     end
 
     before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:list!).and_return(true)
       allow(ActiveResource::Base).to receive(:find_every).and_return(collection)
     end
@@ -261,7 +442,7 @@ RSpec.describe Fixably::Actions do
       it "makes a second request via ActiveResource::Base.last" do
         described_class.last
         expect(ActiveResource::Base).
-          to have_received(:last).with(limit: 1, offset: 89)
+          to have_received(:last).with(expand: "items", limit: 1, offset: 89)
       end
 
       it "returns the last item" do
@@ -272,6 +453,8 @@ RSpec.describe Fixably::Actions do
 
   describe ".where" do
     before do
+      allow(Fixably::ActionPolicy).
+        to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:list!).and_return(true)
     end
 
@@ -385,9 +568,6 @@ RSpec.describe Fixably::Actions do
   end
 
   describe "#destroy" do
-    let(:action_policy_double) { instance_double(Fixably::ActionPolicy) }
-    let(:instance) { described_class.new }
-
     before do
       allow(Fixably::ActionPolicy).
         to receive(:new).and_return(action_policy_double)
@@ -405,6 +585,228 @@ RSpec.describe Fixably::Actions do
     it "forwards the message to the superclass" do
       instance.destroy
       expect(instance).to have_received(:run_callbacks).with(:destroy)
+    end
+  end
+
+  describe "#save" do
+    before { allow(instance).to receive(:run_callbacks) }
+
+    context "when creating a new record" do
+      before { allow(action_policy_double).to receive(:create!) }
+
+      it "validates that the request is supported" do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+
+        instance.save
+
+        expect(Fixably::ActionPolicy).
+          to have_received(:new).with(resource: described_class)
+        expect(action_policy_double).to have_received(:create!)
+      end
+
+      context "when the create action is supported" do
+        before do
+          allow(Fixably::ActionPolicy).
+            to receive(:new).and_return(action_policy_double)
+          allow(action_policy_double).to receive(:create!).and_return(true)
+        end
+
+        it "forwards the message to the superclass" do
+          instance.save
+          expect(instance).to have_received(:run_callbacks).with(:validate)
+        end
+      end
+
+      context "when the create action is not supported" do
+        it "raises a Fixably::UnsupportedError" do
+          expect { instance.save! }.to raise_error(
+            Fixably::UnsupportedError,
+            "Fixably does not support creating fake customers"
+          )
+        end
+      end
+    end
+
+    context "when updating an existing record" do
+      before do
+        allow(instance).to receive(:new?).and_return(false)
+        allow(action_policy_double).to receive(:update!)
+      end
+
+      it "validates that the request is supported" do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+
+        instance.save
+
+        expect(Fixably::ActionPolicy).
+          to have_received(:new).with(resource: described_class)
+        expect(action_policy_double).to have_received(:update!)
+      end
+
+      context "when the validate parameter is false" do
+        it "does not validate the request is supported" do
+          allow(Fixably::ActionPolicy).to receive(:new)
+          instance.save(validate: false)
+          expect(Fixably::ActionPolicy).not_to have_received(:new)
+        end
+      end
+
+      context "when the update action is supported" do
+        before do
+          allow(Fixably::ActionPolicy).
+            to receive(:new).and_return(action_policy_double)
+          allow(action_policy_double).to receive(:update!).and_return(true)
+        end
+
+        it "forwards the message to the superclass" do
+          instance.save
+          expect(instance).to have_received(:run_callbacks).with(:validate)
+        end
+      end
+
+      context "when the update action is not supported" do
+        it "raises a Fixably::UnsupportedError" do
+          expect { instance.save! }.to raise_error(
+            Fixably::UnsupportedError,
+            "Fixably does not support updating fake customers"
+          )
+        end
+      end
+    end
+  end
+
+  describe "#save!" do
+    before { allow(instance).to receive(:run_callbacks) }
+
+    context "when creating a new record" do
+      before { allow(action_policy_double).to receive(:create!) }
+
+      it "validates that the request is supported" do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+
+        begin
+          instance.save!
+        rescue ActiveResource::ResourceInvalid
+        end
+
+        expect(Fixably::ActionPolicy).
+          to have_received(:new).with(resource: described_class)
+        expect(action_policy_double).to have_received(:create!)
+      end
+
+      context "when the create action is supported" do
+        before do
+          allow(Fixably::ActionPolicy).
+            to receive(:new).and_return(action_policy_double)
+          allow(action_policy_double).to receive(:create!).and_return(true)
+        end
+
+        it "forwards the message to save" do
+          allow(instance).to receive(:save)
+
+          begin
+            instance.save!
+          rescue ActiveResource::ResourceInvalid
+          end
+
+          expect(instance).to have_received(:save).with(validate: false)
+        end
+
+        context "when the save fails" do
+          before { allow(instance).to receive(:save).and_return(false) }
+
+          it "raises an ActiveResource::ResourceInvalid error" do
+            expect { instance.save! }.to raise_error(
+              ActiveResource::ResourceInvalid,
+              "Failed."
+            )
+          end
+
+          it "passes the response to the error" do
+            instance.save!
+          rescue ActiveResource::ResourceInvalid => e
+            expect(e.response).to be(instance)
+          end
+        end
+      end
+
+      context "when the create action is not supported" do
+        it "raises a Fixably::UnsupportedError" do
+          expect { instance.save! }.to raise_error(
+            Fixably::UnsupportedError,
+            "Fixably does not support creating fake customers"
+          )
+        end
+      end
+    end
+
+    context "when updating an existing record" do
+      before do
+        allow(instance).to receive(:new?).and_return(false)
+        allow(action_policy_double).to receive(:update!)
+      end
+
+      it "validates that the request is supported" do
+        allow(Fixably::ActionPolicy).
+          to receive(:new).and_return(action_policy_double)
+
+        begin
+          instance.save!
+        rescue ActiveResource::ResourceInvalid
+        end
+
+        expect(Fixably::ActionPolicy).
+          to have_received(:new).with(resource: described_class)
+        expect(action_policy_double).to have_received(:update!)
+      end
+
+      context "when the update action is supported" do
+        before do
+          allow(Fixably::ActionPolicy).
+            to receive(:new).and_return(action_policy_double)
+          allow(action_policy_double).to receive(:update!).and_return(true)
+        end
+
+        it "forwards the message to save" do
+          allow(instance).to receive(:save)
+
+          begin
+            instance.save!
+          rescue ActiveResource::ResourceInvalid
+          end
+
+          expect(instance).to have_received(:save).with(validate: false)
+        end
+
+        context "when the save fails" do
+          before { allow(instance).to receive(:save).and_return(false) }
+
+          it "raises an ActiveResource::ResourceInvalid error" do
+            expect { instance.save! }.to raise_error(
+              ActiveResource::ResourceInvalid,
+              "Failed."
+            )
+          end
+
+          it "passes the response to the error" do
+            instance.save!
+          rescue ActiveResource::ResourceInvalid => e
+            expect(e.response).to be(instance)
+          end
+        end
+      end
+
+      context "when the update action is not supported" do
+        it "raises a Fixably::UnsupportedError" do
+          expect { instance.save! }.to raise_error(
+            Fixably::UnsupportedError,
+            "Fixably does not support updating fake customers"
+          )
+        end
+      end
     end
   end
 end

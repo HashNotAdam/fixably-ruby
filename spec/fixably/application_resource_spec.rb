@@ -167,6 +167,8 @@ RSpec.describe Fixably::ApplicationResource do
     context "when the resource has has_one associations" do
       let(:subclass) do
         Class.new(described_class) do
+          def self.name = "Fixably::FakeCustomer"
+
           schema do
             integer :id
             string :name
@@ -178,6 +180,8 @@ RSpec.describe Fixably::ApplicationResource do
       end
       let(:association_class) do
         Class.new(described_class) do
+          def self.name = "Fixably::FakeAssociation"
+
           schema do
             integer :id
             string :name
@@ -205,6 +209,8 @@ RSpec.describe Fixably::ApplicationResource do
     context "when the resource has has_many associations" do
       let(:subclass) do
         Class.new(described_class) do
+          def self.name = "Fixably::FakeCustomer"
+
           schema do
             integer :id
             string :name
@@ -216,6 +222,8 @@ RSpec.describe Fixably::ApplicationResource do
       end
       let(:association_class) do
         Class.new(described_class) do
+          def self.name = "Fixably::FakeAssociation"
+
           schema do
             integer :id
             string :name
@@ -244,6 +252,11 @@ RSpec.describe Fixably::ApplicationResource do
   end
 
   describe "#load_attributes_from_response" do
+    let(:child_class) do
+      Class.new(described_class) do
+        def self.name = "Fixably::FakeCustomer"
+      end
+    end
     let(:response) { Net::HTTPOK.new(1, http_status, "") }
     let(:duplicate_response) { Net::HTTPOK.new(1, http_status, "") }
     let(:http_status) { 200 }
@@ -256,7 +269,7 @@ RSpec.describe Fixably::ApplicationResource do
     end
 
     it "duplicates the response before making modifications" do
-      described_class.new.__send__(:load_attributes_from_response, response)
+      child_class.new.__send__(:load_attributes_from_response, response)
       expect(response).to have_received(:dup)
     end
 
@@ -264,7 +277,7 @@ RSpec.describe Fixably::ApplicationResource do
       let(:http_status) { 200 }
 
       it "underscores the keys of the response body" do
-        described_class.new.__send__(:load_attributes_from_response, response)
+        child_class.new.__send__(:load_attributes_from_response, response)
         expect(duplicate_response.body).to eq(
           { "first_name" => "Jill", "last_name" => "Wunsch" }.to_json
         )
@@ -275,7 +288,7 @@ RSpec.describe Fixably::ApplicationResource do
       let(:http_status) { 204 }
 
       it "does not modify the response body" do
-        described_class.new.__send__(:load_attributes_from_response, response)
+        child_class.new.__send__(:load_attributes_from_response, response)
         expect(duplicate_response.body).to eq(
           { "firstName" => "Jill", "lastName" => "Wunsch" }.to_json
         )
@@ -283,7 +296,7 @@ RSpec.describe Fixably::ApplicationResource do
     end
 
     it "sets the values from the response to the instance" do
-      instance = described_class.new
+      instance = child_class.new
       expect(instance).not_to respond_to(:first_name)
       instance.__send__(:load_attributes_from_response, response)
       expect(instance.first_name).to eq("Jill")

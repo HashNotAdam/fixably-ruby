@@ -26,7 +26,7 @@ RSpec.shared_examples "an Active Resource encoder" do
     expect(instance.encode).to eq({ "firstName" => "Jill" }.to_json)
   end
 
-  context "when the attrs arguement is supplied" do
+  context "when the attrs argument is supplied" do
     it "uses the supplied attributes" do
       instance = described_class.new
       instance.instance_variable_set(:@attributes, { "firstName" => "Jill" })

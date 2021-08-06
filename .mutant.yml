@@ -5,11 +5,13 @@ matcher:
   ignore:
     - Fixably::ApplicationResource#encode
     - Fixably::ApplicationResource.expand_associations
+    - Fixably::Actions.included
     - Fixably::ActiveResource::PaginatedCollection#paginated_each
     - Fixably::ApplicationResource.format_actions
     - Fixably::ApplicationResource#remove_ids
     - Fixably::ApplicationResource#remove_has_many_associations
-    - Fixably::Customer*
+    - Fixably::Customer#encode
     - Fixably::ResourceLazyLoader*
+
 requires:
   - fixably

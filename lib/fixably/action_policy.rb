@@ -5,7 +5,7 @@ module Fixably
     attr_reader :resource
 
     def initialize(resource:)
-      @resource = resource.is_a?(Class) ? resource : resource.class
+      @resource = resource.instance_of?(Class) ? resource : resource.class
       validate_resource!
     end
 
@@ -86,7 +86,7 @@ module Fixably
     end
 
     def resource_name
-      resource.name.split("::").last.downcase.pluralize
+      resource.name.split("::").last.underscore.humanize.pluralize.downcase
     end
   end
 

@@ -7,7 +7,7 @@ RSpec.describe Fixably::ActionPolicy do
     Class.new(Fixably::ApplicationResource) do
       actions acts
 
-      def self.name = "Customer"
+      def self.name = "Fixably::FakeCustomer"
     end
   end
   let(:actions) { [] }
@@ -62,7 +62,7 @@ RSpec.describe Fixably::ActionPolicy do
       it "raises an UnsupportedError" do
         expect { instance.create! }.to raise_error(
           Fixably::UnsupportedError,
-          "Fixably does not support creating customers"
+          "Fixably does not support creating fake customers"
         )
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe Fixably::ActionPolicy do
       it "raises an UnsupportedError" do
         expect { instance.delete! }.to raise_error(
           Fixably::UnsupportedError,
-          "Fixably does not support deleting customers"
+          "Fixably does not support deleting fake customers"
         )
       end
     end
@@ -128,7 +128,7 @@ RSpec.describe Fixably::ActionPolicy do
       it "raises an UnsupportedError" do
         expect { instance.list! }.to raise_error(
           Fixably::UnsupportedError,
-          "Fixably does not support listing customers"
+          "Fixably does not support listing fake customers"
         )
       end
     end
@@ -161,7 +161,7 @@ RSpec.describe Fixably::ActionPolicy do
       it "raises an UnsupportedError" do
         expect { instance.show! }.to raise_error(
           Fixably::UnsupportedError,
-          "Fixably does not support retrieving customers"
+          "Fixably does not support retrieving fake customers"
         )
       end
     end
@@ -194,7 +194,7 @@ RSpec.describe Fixably::ActionPolicy do
       it "raises an UnsupportedError" do
         expect { instance.update! }.to raise_error(
           Fixably::UnsupportedError,
-          "Fixably does not support updating customers"
+          "Fixably does not support updating fake customers"
         )
       end
     end

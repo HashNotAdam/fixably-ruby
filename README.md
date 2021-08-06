@@ -116,6 +116,7 @@ new endpoints. If you need access to another resource, let's chat.
 
 Currently supported resources:
 - Fixably::Customer ([documentation](docs/customer.md))
+- Fixably::Customer::Child ([documentation](docs/customer/child.md))
 - Fixably::User ([documentation](docs/user.md))
 
 ## Link expansion
