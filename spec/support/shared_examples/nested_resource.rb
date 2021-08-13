@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples "a nested resource" do |name, uri, actions|
+RSpec.shared_examples(
+  "a nested resource"
+) do |name, uri, actions, extra_attrs = {}|
   let(:connection) { instance_double(ActiveResource::Connection) }
   let(:response) { Net::HTTPOK.new(1, 200, "") }
   let(:parent_id) { uri.split("/").fetch(1)[1..].to_sym }
@@ -19,7 +21,7 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
       let(:options) do
         options = { first_name: "Emilee", last_name: "Jerde", phone: "1" }
         options[parent_id] = 1
-        options
+        options.merge(extra_attrs)
       end
 
       before do
@@ -28,27 +30,28 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
           "firstName" => "Jill",
           "lastName" => "Wunsch",
           "phone" => "1",
-        }.to_json
+        }.merge(extra_attrs).to_json
       end
 
       it "makes a POST request" do
-        described_class.create(options)
+        instance = described_class.create(options)
+        expectation = { firstName: "Emilee", lastName: "Jerde", phone: "1" }.
+          merge(extra_attrs).
+          to_json
 
-        expect(connection).to have_received(:post).with(
-          formatted_url,
-          { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
-          anything
-        )
+        expect(instance).to be_valid
+        expect(connection).to have_received(:post).
+          with(formatted_uri, expectation, anything)
       end
 
       it "updates the attributes based on the response" do
-        result = described_class.create(options)
+        instance = described_class.create(options)
 
-        expect(result.attributes).to eq(
+        expect(instance.attributes).to eq(
           {
             "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
             "phone" => "1",
-          }
+          }.merge(extra_attrs)
         )
       end
     end
@@ -57,7 +60,7 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
       let(:options) do
         options = { first_name: "Emilee", last_name: "Jerde", phone: "1" }
         options[parent_id] = 1
-        options
+        options.merge(extra_attrs)
       end
 
       before do
@@ -66,27 +69,28 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
           "firstName" => "Jill",
           "lastName" => "Wunsch",
           "phone" => "1",
-        }.to_json
+        }.merge(extra_attrs).to_json
       end
 
       it "makes a POST request" do
-        described_class.create!(options)
+        instance = described_class.create!(options)
+        expectation = { firstName: "Emilee", lastName: "Jerde", phone: "1" }.
+          merge(extra_attrs).
+          to_json
 
-        expect(connection).to have_received(:post).with(
-          formatted_url,
-          { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
-          anything
-        )
+        expect(instance).to be_valid
+        expect(connection).to have_received(:post).
+          with(formatted_uri, expectation, anything)
       end
 
       it "updates the attributes based on the response" do
-        result = described_class.create!(options)
+        instance = described_class.create!(options)
 
-        expect(result.attributes).to eq(
+        expect(instance.attributes).to eq(
           {
             "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
             "phone" => "1",
-          }
+          }.merge(extra_attrs)
         )
       end
     end
@@ -388,7 +392,7 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
     let(:options) do
       options = { first_name: "Emilee", last_name: "Jerde", phone: "1" }
       options[parent_id] = 1
-      options
+      options.merge(extra_attrs)
     end
 
     before do
@@ -397,7 +401,7 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
         "firstName" => "Jill",
         "lastName" => "Wunsch",
         "phone" => "2",
-      }.to_json
+      }.merge(extra_attrs).to_json
     end
 
     if actions.include?(:create)
@@ -405,12 +409,12 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
         it "makes a POST request" do
           instance = described_class.new(options)
           instance.save
+          expectation = { firstName: "Emilee", lastName: "Jerde", phone: "1" }.
+            merge(extra_attrs).
+            to_json
 
-          expect(connection).to have_received(:post).with(
-            formatted_url,
-            { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
-            anything
-          )
+          expect(connection).to have_received(:post).
+            with(formatted_uri, expectation, anything)
         end
 
         it "updates the attributes based on the response" do
@@ -421,7 +425,7 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
             {
               "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
               "phone" => "2",
-            }
+            }.merge(extra_attrs)
           )
         end
       end
@@ -439,9 +443,13 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
 
     if actions.include?(:update)
       context "when the record is being updated" do
-        it "makes a PUT request" do
+        let(:instance) do
           instance = described_class.new(options)
           instance.instance_variable_set(:@persisted, true)
+          instance
+        end
+
+        it "makes a PUT request" do
           instance.save(validate: false)
 
           expect(connection).to have_received(:put).with(
@@ -452,8 +460,6 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
         end
 
         it "updates the attributes based on the response" do
-          instance = described_class.new(options)
-          instance.instance_variable_set(:@persisted, true)
           instance.save
 
           expect(instance.attributes).to eq(
@@ -466,11 +472,16 @@ RSpec.shared_examples "a nested resource" do |name, uri, actions|
       end
     else
       context "when the record is being updated" do
-        it "raises an error" do
+        let(:instance) do
           instance = described_class.new(options)
-          expect { instance.save! }.to raise_error(
+          instance.instance_variable_set(:@persisted, true)
+          instance
+        end
+
+        it "raises an error" do
+          expect { instance.save }.to raise_error(
             Fixably::UnsupportedError,
-            "Fixably does not support creating #{name.pluralize}"
+            "Fixably does not support updating #{name.pluralize}"
           )
         end
       end

@@ -29,7 +29,7 @@ module Fixably
       errors.add(:base, "Either email or phone must be present")
     end
 
-    def remove_on_encode = %w[tags]
+    def remove_on_encode = super().concat(%w[tags])
 
     class ShippingAddress < ApplicationResource
       schema do

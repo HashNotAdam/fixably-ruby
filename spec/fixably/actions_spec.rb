@@ -12,9 +12,9 @@ RSpec.describe Fixably::Actions do
       def self.name = "FakeHasMany"
     end
   end
-  let(:described_class) do
+  let(:resource) do
     has_one_class_name = fake_has_one.name.underscore
-    has_many_class_name = fake_has_one.name.underscore
+    has_many_class_name = fake_has_many.name.underscore
 
     Class.new(Fixably::ApplicationResource) do
       def self.name = "FakeCustomer"
@@ -23,7 +23,152 @@ RSpec.describe Fixably::Actions do
       has_many :relation, class_name: has_many_class_name
     end
   end
-  let(:instance) { described_class.new }
+  let(:instance) { resource.new }
+
+  describe ".included" do
+    context "when a class does not include this module" do
+      let(:class_without_module) { Class.new }
+
+      it "does not include the module class methods" do
+        expect(class_without_module).not_to respond_to(:all)
+        expect(class_without_module).not_to respond_to(:create)
+        expect(class_without_module).not_to respond_to(:create!)
+        expect(class_without_module).not_to respond_to(:delete)
+        expect(class_without_module).not_to respond_to(:exists?)
+        expect(class_without_module).not_to respond_to(:find)
+        expect(class_without_module).not_to respond_to(:first)
+        expect(class_without_module).not_to respond_to(:last)
+        expect(class_without_module).not_to respond_to(:where)
+      end
+
+      it "does not include the module instance methods" do
+        instance = class_without_module.new
+        expect(instance).not_to respond_to(:destroy)
+        expect(instance).not_to respond_to(:save)
+        expect(instance).not_to respond_to(:save!)
+      end
+    end
+
+    context "when a class includes this module" do
+      let(:class_with_module) do
+        include_module = described_class
+        Class.new do
+          include include_module
+        end
+      end
+
+      it "includes the module class methods" do
+        expect(class_with_module).to respond_to(:all)
+        expect(class_with_module).to respond_to(:create)
+        expect(class_with_module).to respond_to(:create!)
+        expect(class_with_module).to respond_to(:delete)
+        expect(class_with_module).to respond_to(:exists?)
+        expect(class_with_module).to respond_to(:find)
+        expect(class_with_module).to respond_to(:first)
+        expect(class_with_module).to respond_to(:last)
+        expect(class_with_module).to respond_to(:where)
+      end
+
+      it "includes the module instance methods" do
+        instance = class_with_module.new
+        expect(instance).to respond_to(:destroy)
+        expect(instance).to respond_to(:save)
+        expect(instance).to respond_to(:save!)
+      end
+    end
+  end
+
+  describe ".actions" do
+    let(:all_actions) { %i[create delete list show update] }
+
+    context "when it is called on ApplicationResource" do
+      specify do
+        expect { Fixably::ApplicationResource.actions }.to raise_error(
+          RuntimeError,
+          "actions can only be called on a sub-class"
+        )
+      end
+    end
+
+    context "when the resource has no actions" do
+      it "returns an empty array" do
+        expect(resource.actions).to eq([])
+      end
+
+      it "freezes the array" do
+        expect(resource.actions).to be_frozen
+      end
+    end
+
+    context "when the resource has actions" do
+      before { resource.instance_variable_set(:@actions, all_actions) }
+
+      it "returns the actions array" do
+        expect(resource.actions).to eq(all_actions)
+      end
+    end
+
+    context "when an array is supplied" do
+      it "stores an actions array" do
+        resource.actions(all_actions)
+        expect(resource.instance_variable_get(:@actions)).to eq(all_actions)
+      end
+
+      it "freezes the array" do
+        resource.actions(all_actions)
+        expect(resource.instance_variable_get(:@actions)).to be_frozen
+      end
+
+      context "when an unexpected action is supplied" do
+        it "raises an ArgumentError" do
+          expect { resource.actions(%i[unknown]) }.to raise_error(
+            ArgumentError,
+            "Unsupported action, unknown, supplied"
+          )
+        end
+      end
+
+      context "when actions are supplied as strings" do
+        it "converts the string to a symbol" do
+          actions = all_actions.map(&:to_s)
+          resource.actions(actions)
+          expect(resource.instance_variable_get(:@actions)).to eq(all_actions)
+        end
+      end
+    end
+
+    context "when a symbol is supplied" do
+      it "stores the action in an array" do
+        resource.actions(:create)
+        expect(resource.instance_variable_get(:@actions)).to eq([:create])
+      end
+    end
+
+    context "when a string is supplied" do
+      it "stores the action as a symbol in an array" do
+        resource.actions("create")
+        expect(resource.instance_variable_get(:@actions)).to eq([:create])
+      end
+    end
+
+    context "when supplying something that can't be converted into an Array" do
+      it "raises an ArgumentError" do
+        expect { resource.actions(OpenStruct.new) }.to raise_error(
+          ArgumentError,
+          "actions should be able to be converted into an Array or a Symbol"
+        )
+      end
+    end
+
+    context "when supplying values that can't be converted into Symbols" do
+      it "raises an NoMethodError" do
+        expect { resource.actions([nil]) }.to raise_error(
+          NoMethodError,
+          "undefined method `to_sym' for nil:NilClass"
+        )
+      end
+    end
+  end
 
   describe ".all" do
     before do
@@ -34,21 +179,21 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.all
+      resource.all
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:list!)
     end
 
     it "forwards the message to the superclass" do
-      described_class.all(argument1: "A", argument2: "B")
+      resource.all(argument1: "A", argument2: "B")
       expect(ActiveResource::Base).
         to have_received(:all).with(argument1: "A", argument2: "B")
     end
 
     context "when no arguments are supplied" do
       it "passes no arguments" do
-        described_class.all
+        resource.all
         expect(ActiveResource::Base).to have_received(:all).with(no_args)
       end
     end
@@ -62,10 +207,10 @@ RSpec.describe Fixably::Actions do
         to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:create!)
 
-      described_class.create
+      resource.create
 
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:create!)
     end
 
@@ -77,12 +222,12 @@ RSpec.describe Fixably::Actions do
       end
 
       it "forwards the message to the superclass" do
-        described_class.create
+        resource.create
         expect(ActiveResource::Base).to have_received(:create).with({})
       end
 
       it "forwards on any supplied options" do
-        described_class.create(option1: "A", option2: "B")
+        resource.create(option1: "A", option2: "B")
         expect(ActiveResource::Base).
           to have_received(:create).with(option1: "A", option2: "B")
       end
@@ -90,7 +235,7 @@ RSpec.describe Fixably::Actions do
 
     context "when the create action is not supported" do
       it "raises an UnsupportedError" do
-        expect { described_class.create }.to raise_error(
+        expect { resource.create }.to raise_error(
           Fixably::UnsupportedError,
           "Fixably does not support creating fake customers"
         )
@@ -106,10 +251,10 @@ RSpec.describe Fixably::Actions do
         to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:create!)
 
-      described_class.create!
+      resource.create!
 
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:create!)
     end
 
@@ -121,12 +266,12 @@ RSpec.describe Fixably::Actions do
       end
 
       it "forwards the message to the superclass" do
-        described_class.create!
+        resource.create!
         expect(ActiveResource::Base).to have_received(:create!).with({})
       end
 
       it "forwards on any supplied options" do
-        described_class.create!(option1: "A", option2: "B")
+        resource.create!(option1: "A", option2: "B")
         expect(ActiveResource::Base).
           to have_received(:create!).with(option1: "A", option2: "B")
       end
@@ -134,7 +279,7 @@ RSpec.describe Fixably::Actions do
 
     context "when the create action is not supported" do
       it "raises an UnsupportedError" do
-        expect { described_class.create! }.to raise_error(
+        expect { resource.create! }.to raise_error(
           Fixably::UnsupportedError,
           "Fixably does not support creating fake customers"
         )
@@ -151,19 +296,19 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.delete(1)
+      resource.delete(1)
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:delete!)
     end
 
     it "forwards the message to the superclass" do
-      described_class.delete(1)
+      resource.delete(1)
       expect(ActiveResource::Base).to have_received(:delete).with(1, {})
     end
 
     it "forwards on any supplied options" do
-      described_class.delete(1, option: "A")
+      resource.delete(1, option: "A")
       expect(ActiveResource::Base).
         to have_received(:delete).with(1, option: "A")
     end
@@ -178,24 +323,30 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.exists?(1)
+      resource.exists?(1)
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:show!)
     end
 
     it "attempts to find the record" do
-      allow(described_class).to receive(:find)
-      described_class.exists?(1, argument1: "A", argument2: "B")
-      expect(described_class).
+      allow(resource).to receive(:find)
+      resource.exists?(1, argument1: "A", argument2: "B")
+      expect(resource).
         to have_received(:find).with(1, argument1: "A", argument2: "B")
     end
 
+    it "defaults the options to an empty hash" do
+      allow(resource).to receive(:find)
+      resource.exists?(1)
+      expect(resource).to have_received(:find).with(1, {})
+    end
+
     context "when the record exist" do
-      before { allow(described_class).to receive(:find).and_return({ a: "a" }) }
+      before { allow(resource).to receive(:find).and_return({ a: "a" }) }
 
       specify do
-        result = described_class.exists?(1)
+        result = resource.exists?(1)
         expect(result).to be true
       end
     end
@@ -203,11 +354,11 @@ RSpec.describe Fixably::Actions do
     context "when the record does not exist" do
       before do
         error = ::ActiveResource::ResourceNotFound.new({})
-        allow(described_class).to receive(:find).and_raise(error)
+        allow(resource).to receive(:find).and_raise(error)
       end
 
       specify do
-        result = described_class.exists?(1)
+        result = resource.exists?(1)
         expect(result).to be false
       end
     end
@@ -222,28 +373,28 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.find(1)
+      resource.find(1)
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:show!)
     end
 
     it "passes the message to ActiveResource with a request to expand items" do
-      described_class.find(1)
+      resource.find(1)
       expect(ActiveResource::Base).to have_received(:find).
         with(1, params: {})
     end
 
     context "when expanded associations are supplied" do
       it "merges the supplied associations with items" do
-        described_class.find(1, expand: %i[association relation])
+        resource.find(1, expand: %i[association relation])
         expect(ActiveResource::Base).to have_received(:find).
           with(1, params: { expand: "association,relation(items)" })
       end
 
       context "when expand is a string" do
         it "passes it on unmodified" do
-          described_class.find(1, expand: "do not modify")
+          resource.find(1, expand: "do not modify")
           expect(ActiveResource::Base).to have_received(:find).
             with(1, params: { expand: "do not modify" })
         end
@@ -252,7 +403,7 @@ RSpec.describe Fixably::Actions do
 
     context "when options are supplied" do
       it "merges the options into the params" do
-        described_class.find(1, { option1: "A", option2: "B" })
+        resource.find(1, { option1: "A", option2: "B" })
         expect(ActiveResource::Base).to have_received(:find).
           with(
             1,
@@ -262,8 +413,19 @@ RSpec.describe Fixably::Actions do
 
       it "does not modify the supplied arguments directly" do
         arguments = { option1: "A", option2: "B" }
-        described_class.find(1, arguments)
+        resource.find(1, arguments)
         expect(arguments).to eq(option1: "A", option2: "B")
+      end
+    end
+
+    context "when the parameteres are already nested under a params key" do
+      it "does not re-nest the parameters" do
+        resource.find(1, params: { option1: "A", option2: "B" })
+        expect(ActiveResource::Base).to have_received(:find).
+          with(
+            1,
+            { params: { option1: "A", option2: "B" } }
+          )
       end
     end
   end
@@ -277,23 +439,53 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.first
+      resource.first
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:list!)
     end
 
     it "sets the limit parameter to 1 before passing on the message" do
-      described_class.first
+      resource.first
       expect(ActiveResource::Base).to have_received(:first).with(limit: 1)
     end
 
     context "when arguments are supplied" do
       it "forwards the arguments" do
-        described_class.first(argument1: "A", argument2: "B")
+        resource.first(argument1: "A", argument2: "B")
         expect(ActiveResource::Base).to have_received(:first).
           with(argument1: "A", argument2: "B", limit: 1)
       end
+    end
+  end
+
+  describe ".includes" do
+    let(:resource_lazy_loader_double) do
+      instance_double(Fixably::ResourceLazyLoader)
+    end
+
+    before do
+      allow(Fixably::ResourceLazyLoader).
+        to receive(:new).and_return(resource_lazy_loader_double)
+      allow(resource_lazy_loader_double).
+        to receive(:includes).and_return(resource_lazy_loader_double)
+    end
+
+    it "creates a new Fixably::ResourceLazyLoader passing in the caller" do
+      resource.includes(:association)
+      expect(Fixably::ResourceLazyLoader).
+        to have_received(:new).with(model: resource)
+    end
+
+    it "send an includes message to the new instance" do
+      resource.includes(:association)
+      expect(resource_lazy_loader_double).
+        to have_received(:includes).with(:association)
+    end
+
+    it "returns the new instance" do
+      result = resource.includes(:association)
+      expect(result).to be resource_lazy_loader_double
     end
   end
 
@@ -312,9 +504,9 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      described_class.last
+      resource.last
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:list!)
     end
 
@@ -326,7 +518,7 @@ RSpec.describe Fixably::Actions do
       end
 
       it "makes the request via find_every" do
-        described_class.last(argument1: "A", argument2: "B")
+        resource.last(argument1: "A", argument2: "B")
         expect(ActiveResource::Base).
           to have_received(:find_every).with(
             params: { argument1: "A", argument2: "B", expand: "items" }
@@ -334,12 +526,12 @@ RSpec.describe Fixably::Actions do
       end
 
       it "returns nil" do
-        expect(described_class.last).to be_nil
+        expect(resource.last).to be_nil
       end
 
       it "does not make a second request" do
         allow(ActiveResource::Base).to receive(:last)
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).not_to have_received(:last)
       end
     end
@@ -353,7 +545,7 @@ RSpec.describe Fixably::Actions do
       let(:items) { [{ "id" => 6 }, { "id" => 7 }, { "id" => 8 }] }
 
       it "makes the request via find_every" do
-        described_class.last(offset: 5)
+        resource.last(offset: 5)
         expect(ActiveResource::Base).
           to have_received(:find_every).with(
             params: { offset: 5, expand: "items" }
@@ -361,13 +553,13 @@ RSpec.describe Fixably::Actions do
       end
 
       it "returns the last item" do
-        result = described_class.last(offset: 5)
+        result = resource.last(offset: 5)
         expect(result).to eq(items.last)
       end
 
       it "does not make a second request" do
         allow(ActiveResource::Base).to receive(:last)
-        described_class.last(offset: 5)
+        resource.last(offset: 5)
         expect(ActiveResource::Base).not_to have_received(:last)
       end
     end
@@ -381,18 +573,18 @@ RSpec.describe Fixably::Actions do
       let(:items) { [{ "id" => 1 }, { "id" => 2 }, { "id" => 3 }] }
 
       it "makes the request via find_every" do
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).
           to have_received(:find_every).with(params: { expand: "items" })
       end
 
       it "returns the last item" do
-        expect(described_class.last).to eq(items.last)
+        expect(resource.last).to eq(items.last)
       end
 
       it "does not make a second request" do
         allow(ActiveResource::Base).to receive(:last)
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).not_to have_received(:last)
       end
     end
@@ -406,18 +598,18 @@ RSpec.describe Fixably::Actions do
       let(:items) { [{ "id" => 1 }, { "id" => 2 }, { "id" => 3 }] }
 
       it "makes the request via find_every" do
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).
           to have_received(:find_every).with(params: { expand: "items" })
       end
 
       it "returns the last item" do
-        expect(described_class.last).to eq(items.last)
+        expect(resource.last).to eq(items.last)
       end
 
       it "does not make a second request" do
         allow(ActiveResource::Base).to receive(:last)
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).not_to have_received(:last)
       end
     end
@@ -434,19 +626,28 @@ RSpec.describe Fixably::Actions do
       end
 
       it "makes the request via find_every" do
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).
           to have_received(:find_every).with(params: { expand: "items" })
       end
 
       it "makes a second request via ActiveResource::Base.last" do
-        described_class.last
+        resource.last
         expect(ActiveResource::Base).
           to have_received(:last).with(expand: "items", limit: 1, offset: 89)
       end
 
       it "returns the last item" do
-        expect(described_class.last).to eq("id" => 90)
+        expect(resource.last).to eq("id" => 90)
+      end
+    end
+
+    context "when the parameteres are already nested under a params key" do
+      it "does not re-nest the parameters" do
+        resource.last(params: { option1: "A", option2: "B" })
+        expect(ActiveResource::Base).
+          to have_received(:find_every).
+          with(params: { expand: "items", option1: "A", option2: "B" })
       end
     end
   end
@@ -459,82 +660,82 @@ RSpec.describe Fixably::Actions do
     end
 
     it "validates that the request is supported" do
-      allow(described_class).to receive(:find)
-      described_class.where
+      allow(resource).to receive(:find)
+      resource.where
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:list!)
     end
 
     it "forwards the message to find" do
-      allow(described_class).to receive(:find)
-      described_class.where(argument1: "A", argument2: "B")
-      expect(described_class).to have_received(:find).with(
+      allow(resource).to receive(:find)
+      resource.where(argument1: "A", argument2: "B")
+      expect(resource).to have_received(:find).with(
         :all, argument1: "A", argument2: "B"
       )
     end
 
     it "delegates parameter preparation to find" do
       allow(ActiveResource::Base).to receive(:find)
-      described_class.where(argument1: "A", argument2: "B")
+      resource.where(argument1: "A", argument2: "B")
       expect(ActiveResource::Base).to have_received(:find).with(
         :all, params: { argument1: "A", argument2: "B", expand: "items" }
       )
     end
 
     context "when no arguments are supplied" do
-      before { allow(described_class).to receive(:find) }
+      before { allow(resource).to receive(:find) }
 
       it "passes on an empty hash" do
-        described_class.where
-        expect(described_class).to have_received(:find).with(:all, {})
+        resource.where
+        expect(resource).to have_received(:find).with(:all, {})
       end
     end
 
     context "when an argument has an array value" do
-      before { allow(described_class).to receive(:find) }
+      before { allow(resource).to receive(:find) }
 
       context "when the array has two values" do
-        it "converts the two values to a string value" do
-          described_class.where(created_at: %w[2000-01-01 2000-02-01])
-          expect(described_class).to have_received(:find).
+        it "converts the two values to a string" do
+          resource.where(created_at: %w[2000-01-01 2000-02-01])
+          expect(resource).to have_received(:find).
             with(:all, { created_at: "[2000-01-01,2000-02-01]" })
         end
 
         it "converts time values into strings" do
           from = Time.parse("2000-01-01 10:00:00")
           to = Time.parse("2000-02-01 13:00:00")
-          described_class.where(created_at: [from, to])
-          expect(described_class).to have_received(:find).
+          resource.where(created_at: [from, to])
+          expect(resource).to have_received(:find).
             with(:all, { created_at: "[2000-01-01,2000-02-01]" })
         end
       end
 
       context "when the array has two values and the first is nil" do
-        before { allow(described_class).to receive(:find) }
+        before { allow(resource).to receive(:find) }
 
         it "converts nil into an empty space" do
-          described_class.where(created_at: [nil, "2000-02-01"])
-          expect(described_class).to have_received(:find).
+          resource.where(created_at: [nil, "2000-02-01"])
+          expect(resource).to have_received(:find).
             with(:all, { created_at: "[,2000-02-01]" })
         end
       end
 
       context "when the array has two values and the second is nil" do
-        before { allow(described_class).to receive(:find) }
+        before { allow(resource).to receive(:find) }
 
         it "converts nil into an empty space" do
-          described_class.where(created_at: ["2000-01-01", nil])
-          expect(described_class).to have_received(:find).
+          resource.where(created_at: ["2000-01-01", nil])
+          expect(resource).to have_received(:find).
             with(:all, { created_at: "[2000-01-01,]" })
         end
       end
 
       context "when the array is empty" do
-        before { allow(described_class).to receive(:find) }
+        before { allow(resource).to receive(:find) }
 
         it "raises and ArgumentError" do
-          expect { described_class.where(created_at: []) }.to raise_error(
+          expect { resource.where(created_at: []) }.to raise_error(
             ArgumentError,
             "Ranged searches should have either 1 or 2 values but " \
             "created_at has 0"
@@ -543,25 +744,53 @@ RSpec.describe Fixably::Actions do
       end
 
       context "when the array has one value" do
-        before { allow(described_class).to receive(:find) }
+        before { allow(resource).to receive(:find) }
 
         it "acts as if a nil second value was supplied" do
-          described_class.where(created_at: ["2000-01-01"])
-          expect(described_class).to have_received(:find).
+          resource.where(created_at: ["2000-01-01"])
+          expect(resource).to have_received(:find).
             with(:all, { created_at: "[2000-01-01,]" })
         end
       end
 
       context "when the array has more than two values" do
-        before { allow(described_class).to receive(:find) }
+        before { allow(resource).to receive(:find) }
 
         it "raises and ArgumentError" do
           values = %w[2000-01-01 2000-02-01 2000-03-01]
-          expect { described_class.where(created_at: values) }.to raise_error(
+          expect { resource.where(created_at: values) }.to raise_error(
             ArgumentError,
             "Ranged searches should have either 1 or 2 values but " \
             "created_at has 3"
           )
+        end
+      end
+
+      context "when other values are also supplied" do
+        it "converts the only the array to a string" do
+          resource.where(
+            id: 1,
+            created_at: %w[2000-01-01 2000-02-01],
+            num: 2
+          )
+          expect(resource).to have_received(:find).
+            with(:all, { id: 1, created_at: "[2000-01-01,2000-02-01]", num: 2 })
+        end
+      end
+
+      context "when the value is array-like" do
+        let(:value) do
+          klass = Class.new(Array)
+          result = klass.new
+          result << "2000-01-01"
+          result << "2000-02-01"
+          result
+        end
+
+        it "converts the values to a string" do
+          resource.where(created_at: value)
+          expect(resource).to have_received(:find).
+            with(:all, { created_at: "[2000-01-01,2000-02-01]" })
         end
       end
     end
@@ -578,7 +807,7 @@ RSpec.describe Fixably::Actions do
     it "validates that the request is supported" do
       instance.destroy
       expect(Fixably::ActionPolicy).
-        to have_received(:new).with(resource: described_class)
+        to have_received(:new).with(resource: resource)
       expect(action_policy_double).to have_received(:delete!)
     end
 
@@ -601,7 +830,7 @@ RSpec.describe Fixably::Actions do
         instance.save
 
         expect(Fixably::ActionPolicy).
-          to have_received(:new).with(resource: described_class)
+          to have_received(:new).with(resource: resource)
         expect(action_policy_double).to have_received(:create!)
       end
 
@@ -641,7 +870,7 @@ RSpec.describe Fixably::Actions do
         instance.save
 
         expect(Fixably::ActionPolicy).
-          to have_received(:new).with(resource: described_class)
+          to have_received(:new).with(resource: resource)
         expect(action_policy_double).to have_received(:update!)
       end
 
@@ -693,7 +922,7 @@ RSpec.describe Fixably::Actions do
         end
 
         expect(Fixably::ActionPolicy).
-          to have_received(:new).with(resource: described_class)
+          to have_received(:new).with(resource: resource)
         expect(action_policy_double).to have_received(:create!)
       end
 
@@ -759,7 +988,7 @@ RSpec.describe Fixably::Actions do
         end
 
         expect(Fixably::ActionPolicy).
-          to have_received(:new).with(resource: described_class)
+          to have_received(:new).with(resource: resource)
         expect(action_policy_double).to have_received(:update!)
       end
 

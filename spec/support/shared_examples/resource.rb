@@ -182,9 +182,11 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one
         describe "has_one link expansion" do
+          let(:expansion) do
+            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+          end
+
           it "nests the associations under items" do
-            expansion = { expand: "items(#{has_one_associations.join(",")})" }.
-              to_query
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             chain.all
@@ -193,15 +195,32 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}", anything
             )
           end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_one_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.all
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}", anything
+              )
+            end
+          end
         end
       end
 
       if includes_has_many
         describe "has_many link expansion" do
-          it "nests the associations under items including netsed items" do
+          let(:expansion) do
             associations = has_many_associations.map { "#{_1}(items)" }.
               join(",")
-            expansion = { expand: "items(#{associations})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+
+          it "nests the associations under items including nested items" do
             chain = described_class
             has_many_associations.each { chain = chain.includes(_1) }
             chain.all
@@ -209,6 +228,20 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
             expect(connection).to have_received(:get).with(
               "/api/v3/#{uri}?#{expansion}", anything
             )
+          end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_many_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.all
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}", anything
+              )
+            end
           end
         end
       end
@@ -228,6 +261,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}", anything
             )
           end
+        end
+      end
+
+      context "when an expansion string is supplied" do
+        it "uses the string rather than includes" do
+          described_class.all(expand: "custom expansion string")
+
+          expect(connection).to have_received(:get).with(
+            "/api/v3/#{uri}?expand=custom+expansion+string", anything
+          )
         end
       end
     end
@@ -253,6 +296,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one
         describe "has_one link expansion" do
+          let(:expansion) do
+            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+          end
+
           it "nests the associations under items" do
             expansion = { expand: "items(#{has_one_associations.join(",")})" }.
               to_query
@@ -264,15 +311,32 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}&limit=1", anything
             )
           end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_one_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.first
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}&limit=1", anything
+              )
+            end
+          end
         end
       end
 
       if includes_has_many
         describe "has_many link expansion" do
-          it "nests the associations under items including netsed items" do
+          let(:expansion) do
             associations = has_many_associations.map { "#{_1}(items)" }.
               join(",")
-            expansion = { expand: "items(#{associations})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+
+          it "nests the associations under items including nested items" do
             chain = described_class
             has_many_associations.each { chain = chain.includes(_1) }
             chain.first
@@ -280,6 +344,20 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
             expect(connection).to have_received(:get).with(
               "/api/v3/#{uri}?#{expansion}&limit=1", anything
             )
+          end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_many_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.first
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}&limit=1", anything
+              )
+            end
           end
         end
       end
@@ -299,6 +377,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}&limit=1", anything
             )
           end
+        end
+      end
+
+      context "when an expansion string is supplied" do
+        it "uses the string rather than includes" do
+          described_class.first(expand: "custom expansion string")
+
+          expect(connection).to have_received(:get).with(
+            "/api/v3/#{uri}?expand=custom+expansion+string&limit=1", anything
+          )
         end
       end
     end
@@ -339,9 +427,11 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one
         describe "has_one link expansion" do
+          let(:expansion) do
+            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+          end
+
           it "nests the associations under items" do
-            expansion = { expand: "items(#{has_one_associations.join(",")})" }.
-              to_query
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             chain.last
@@ -350,15 +440,32 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}", anything
             )
           end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_one_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.last
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}", anything
+              )
+            end
+          end
         end
       end
 
       if includes_has_many
         describe "has_many link expansion" do
-          it "nests the associations under items including netsed items" do
+          let(:expansion) do
             associations = has_many_associations.map { "#{_1}(items)" }.
               join(",")
-            expansion = { expand: "items(#{associations})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+
+          it "nests the associations under items including nested items" do
             chain = described_class
             has_many_associations.each { chain = chain.includes(_1) }
             chain.last
@@ -366,6 +473,20 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
             expect(connection).to have_received(:get).with(
               "/api/v3/#{uri}?#{expansion}", anything
             )
+          end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_many_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.last
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}", anything
+              )
+            end
           end
         end
       end
@@ -385,6 +506,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}", anything
             )
           end
+        end
+      end
+
+      context "when an expansion string is supplied" do
+        it "uses the string rather than includes" do
+          described_class.last(expand: "custom expansion string")
+
+          expect(connection).to have_received(:get).with(
+            "/api/v3/#{uri}?expand=custom+expansion+string", anything
+          )
         end
       end
     end
@@ -414,9 +545,11 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one
         describe "has_one link expansion" do
+          let(:expansion) do
+            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+          end
+
           it "nests the associations under items" do
-            expansion = { expand: "items(#{has_one_associations.join(",")})" }.
-              to_query
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             chain.where(first_name: "Jill")
@@ -425,15 +558,32 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}&#{query}", anything
             )
           end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_one_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.where(first_name: "Jill")
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}&#{query}", anything
+              )
+            end
+          end
         end
       end
 
       if includes_has_many
         describe "has_many link expansion" do
-          it "nests the associations under items including netsed items" do
+          let(:expansion) do
             associations = has_many_associations.map { "#{_1}(items)" }.
               join(",")
-            expansion = { expand: "items(#{associations})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+
+          it "nests the associations under items including nested items" do
             chain = described_class
             has_many_associations.each { chain = chain.includes(_1) }
             chain.where(first_name: "Jill")
@@ -441,6 +591,20 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
             expect(connection).to have_received(:get).with(
               "/api/v3/#{uri}?#{expansion}&#{query}", anything
             )
+          end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_many_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.where(first_name: "Jill")
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}?#{expansion}&#{query}", anything
+              )
+            end
           end
         end
       end
@@ -460,6 +624,17 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}?#{expansion}&#{query}", anything
             )
           end
+        end
+      end
+
+      context "when an expansion string is supplied" do
+        it "uses the string rather than includes" do
+          described_class.
+            where(first_name: "Jill", expand: "custom expansion string")
+
+          expect(connection).to have_received(:get).with(
+            "/api/v3/#{uri}?expand=custom+expansion+string&#{query}", anything
+          )
         end
       end
     end
@@ -558,9 +733,11 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one
         describe "has_one link expansion" do
+          let(:expansion) do
+            { expand: has_one_associations.join(",") }.to_query
+          end
+
           it "nests the associations under items" do
-            expansion = { expand: has_one_associations.join(",") }.
-              to_query
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             chain.find(1)
@@ -569,15 +746,32 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}/1?#{expansion}", anything
             )
           end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_one_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.find(1)
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}/1?#{expansion}", anything
+              )
+            end
+          end
         end
       end
 
       if includes_has_many
         describe "has_many link expansion" do
-          it "nests the associations under items including netsed items" do
+          let(:expansion) do
             associations = has_many_associations.map { "#{_1}(items)" }.
               join(",")
-            expansion = { expand: associations }.to_query
+            { expand: associations }.to_query
+          end
+
+          it "nests the associations under items including nested items" do
             chain = described_class
             has_many_associations.each { chain = chain.includes(_1) }
             chain.find(1)
@@ -585,6 +779,20 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
             expect(connection).to have_received(:get).with(
               "/api/v3/#{uri}/1?#{expansion}", anything
             )
+          end
+
+          context "when the same association is included multiple times" do
+            it "only includes the association once" do
+              chain = described_class
+              has_many_associations.each do |association|
+                2.times { chain = chain.includes(association) }
+              end
+              chain.find(1)
+
+              expect(connection).to have_received(:get).with(
+                "/api/v3/#{uri}/1?#{expansion}", anything
+              )
+            end
           end
         end
       end
@@ -604,6 +812,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
               "/api/v3/#{uri}/1?#{expansion}", anything
             )
           end
+        end
+      end
+
+      context "when an expansion string is supplied" do
+        it "uses the string rather than includes" do
+          described_class.find(1, expand: "custom expansion string")
+
+          expect(connection).to have_received(:get).with(
+            "/api/v3/#{uri}/1?expand=custom+expansion+string", anything
+          )
         end
       end
     end
@@ -727,9 +945,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
         it "raises an error" do
           instance = described_class.
             new(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          instance.instance_variable_set(:@persisted, true)
           expect { instance.save! }.to raise_error(
             Fixably::UnsupportedError,
-            "Fixably does not support creating #{name.pluralize}"
+            "Fixably does not support updating #{name.pluralize}"
           )
         end
       end

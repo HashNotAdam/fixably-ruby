@@ -6,16 +6,16 @@ module Fixably
 
     def parametize_arguments(scope, arguments)
       arguments ||= {}
-      params = arguments.dup
+      arguments.merge!(arguments.delete(:params)) if arguments.key?(:params)
 
-      associations = expand_associations(scope, params)
-      params[:expand] = associations if associations
+      associations = expand_associations(scope, arguments)
+      arguments[:expand] = associations if associations
 
-      { params: params }
+      { params: arguments }
     end
 
     def expand_associations(scope, arguments)
-      return arguments[:expand] if arguments[:expand].is_a?(String)
+      return if arguments[:expand].instance_of?(String)
 
       case scope
       when :all, :first, :last
@@ -29,7 +29,7 @@ module Fixably
     end
 
     def associations(arguments)
-      arguments[:expand]&.to_set&.map { expand_association(_1) }
+      arguments[:expand]&.to_set { expand_association(_1) }
     end
 
     def expand_association(association)
@@ -45,7 +45,7 @@ module Fixably
     end
 
     def stringify_array_values(arguments)
-      arguments.dup.tap do |args|
+      arguments.tap do |args|
         args.each do |attribute, value|
           next unless value.is_a?(Array)
 

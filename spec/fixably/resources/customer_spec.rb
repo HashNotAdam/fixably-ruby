@@ -40,27 +40,19 @@ RSpec.describe Fixably::Customer do
   end
 
   describe "#encode" do
-    let(:attributes) do
-      {
-        "id" => 1,
-        "first_name" => "Jennefer",
-        "last_name" => "Crona",
-        "tags" => [],
-      }
-    end
-    let(:sanitised_attributes) do
-      {
-        "firstName" => "Jennefer",
-        "lastName" => "Crona",
-      }
-    end
+    attributes = {
+      "id" => 1,
+      "href" => "https://...",
+      "first_name" => "Jill",
+      "tags" => [],
+      "created_at" => "2000-01-01",
+    }
+    encoded_attributes = { "firstName" => "Jill" }
 
-    it_behaves_like "an Active Resource encoder"
-
-    it "removes attributes that would be rejected by the Fixably API" do
-      instance = described_class.new
-      instance.instance_variable_set(:@attributes, attributes)
-      expect(instance.encode).to eq(sanitised_attributes.to_json)
-    end
+    include_examples(
+      "an Active Resource encoder",
+      attributes,
+      encoded_attributes
+    )
   end
 end

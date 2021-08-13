@@ -1,19 +1,48 @@
 # frozen_string_literal: true
 
+require_relative "../create_has_many_record"
+
 module Fixably
   module ActiveResource
     class PaginatedCollection < ::ActiveResource::Collection
+      class << self
+        def paginatable?(value)
+          collection = attributes(value)
+          return false unless collection.is_a?(Hash)
+
+          interface = %w[limit offset total_items items]
+          (interface - collection.keys).empty?
+        end
+
+        def attributes(collection_wrapper)
+          if collection_wrapper.respond_to?(:attributes)
+            collection_wrapper.attributes
+          else
+            collection_wrapper
+          end
+        end
+      end
+
       attr_reader :limit
       attr_reader :offset
       attr_reader :total_items
 
-      def initialize(collection_wrapper)
-        @limit = collection_wrapper.fetch("limit")
-        @offset = collection_wrapper.fetch("offset")
-        @total_items = collection_wrapper.fetch("totalItems")
+      attr_accessor :parent_resource
+      attr_accessor :parent_association
 
-        collection = collection_wrapper.fetch("items")
+      def initialize(collection_wrapper = nil)
+        @limit = collection_wrapper&.fetch("limit") || 0
+        @offset = collection_wrapper&.fetch("offset") || 0
+        @total_items = collection_wrapper&.fetch("totalItems") do
+          collection_wrapper.fetch("total_items")
+        end || 0
+
+        collection = collection_wrapper&.fetch("items") || []
         super(collection)
+      end
+
+      def <<(record)
+        CreateHasManyRecord.(record: record, collection: self)
       end
 
       def paginated_each

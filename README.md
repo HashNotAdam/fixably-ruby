@@ -92,14 +92,12 @@ customer = Fixably::Customer.create!(first_name: "HashNotAdam") # Exception: Fai
 If you need to know the attributes of a model, you can request the schema. It
 should be noted that the schema only includes fields that Fixably accept when
 creating or updating record. For example, if you load a customer, the API will
-include tags but Fixably does not support modifying the tags attribute via the
-API.
+include an ID and tags but Fixably does not support modifying either attribute.
 
 ```ruby
 Fixably::Customer.schema
 # =>
-# {"id"=>"integer",
-#  "first_name"=>"string",
+#  {"first_name"=>"string",
 #  "last_name"=>"string",
 #  "company"=>"string",
 #  "phone"=>"string",
@@ -111,12 +109,16 @@ Fixably::Customer.schema
 ```
 
 We only use a small subset of the available resources so not all of the API is
-supported, however, this gem is designed in such a way to make it easy to add
+implemented, however, this gem is designed in such a way to make it easy to add
 new endpoints. If you need access to another resource, let's chat.
 
 Currently supported resources:
 - Fixably::Customer ([documentation](docs/customer.md))
 - Fixably::Customer::Child ([documentation](docs/customer/child.md))
+- Fixably::Order ([documentation](docs/order.md))
+- Fixably::Order::Line ([documentation](docs/order/line.md))
+- Fixably::Order::Note ([documentation](docs/order/note.md))
+- Fixably::Order::Task ([documentation](docs/order/task.md))
 - Fixably::User ([documentation](docs/user.md))
 
 ## Link expansion

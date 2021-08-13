@@ -2,6 +2,7 @@
 
 require_relative "action_policy"
 require_relative "argument_parameterisation"
+require_relative "resource_lazy_loader"
 
 module Fixably
   module Actions
@@ -11,6 +12,17 @@ module Fixably
 
     module ClassMethods
       include ArgumentParameterisation
+
+      def actions(values = nil)
+        if eql?(ApplicationResource)
+          raise "actions can only be called on a sub-class"
+        end
+
+        @actions ||= [].freeze
+        return @actions if values.nil?
+
+        @actions = format_actions(values).freeze
+      end
 
       def all(*arguments)
         ActionPolicy.new(resource: self).list!
@@ -42,7 +54,7 @@ module Fixably
       def find(*arguments)
         scope = arguments.slice(0)
 
-        ActionPolicy.new(resource: self).show! unless scope.is_a?(Symbol)
+        ActionPolicy.new(resource: self).show! unless scope.instance_of?(Symbol)
 
         args = parametize_arguments(scope, arguments.slice(1))
 
@@ -55,6 +67,10 @@ module Fixably
         args = arguments.first || {}
         args[:limit] = 1
         super(args)
+      end
+
+      def includes(association)
+        ResourceLazyLoader.new(model: self).includes(association)
       end
 
       def last(*arguments)
@@ -75,6 +91,31 @@ module Fixably
         arguments = stringify_array_values(clauses)
         find(:all, arguments)
       end
+
+      private
+
+      # rubocop:disable Metrics/MethodLength
+      def format_actions(values)
+        unless values.respond_to?(:to_sym) || values.respond_to?(:to_a)
+          raise(
+            ArgumentError,
+            "actions should be able to be converted into an Array or a Symbol"
+          )
+        end
+
+        Array.wrap(values).map do
+          action = _1.to_sym
+
+          unless allowed_actions.include?(action)
+            raise ArgumentError, "Unsupported action, #{action}, supplied"
+          end
+
+          action
+        end
+      end
+      # rubocop:enable Metrics/MethodLength
+
+      def allowed_actions = %i[create delete list show update]
     end
 
     def destroy
