@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fixably"
-require "dotenv/load"
 require "pry-byebug"
 
 ENV["ENV"] = "test"
