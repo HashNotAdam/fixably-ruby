@@ -12,6 +12,7 @@ module Fixably
 
     has_one :contact, class_name: "fixably/order/contact"
     has_one :customer, class_name: "fixably/customer"
+    has_one :device, class_name: "fixably/device"
     has_one :ordered_by, class_name: "fixably/customer"
     has_one :handled_by, class_name: "fixably/customer"
 
@@ -20,7 +21,6 @@ module Fixably
     has_many :tasks, class_name: "fixably/order/task"
 
     # TODO
-    # has_one :device
     # has_one :location
     # has_one :queue
     # has_one :status

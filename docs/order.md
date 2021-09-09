@@ -28,7 +28,7 @@ Fixably::Order.includes(:tasks).where(internal_location: "SERVICE")
 ## Get a customer
 
 ```ruby
-Fixably::Order.find(1000)
+Fixably::Order.find(1_000)
 Fixably::Order.first
 Fixably::Order.last
 ```
@@ -57,7 +57,7 @@ order.save!
 
 ```ruby
 customer = Fixably::Customer.first
-order = Fixably::Order.find(1000)
+order = Fixably::Order.find(1_000)
 order.internal_location = "SERVICE"
 
 order.save

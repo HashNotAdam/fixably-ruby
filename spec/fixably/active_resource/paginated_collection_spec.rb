@@ -113,7 +113,12 @@ RSpec.describe Fixably::ActiveResource::PaginatedCollection do
     context "when passed an object that responds to attributes" do
       subject { described_class.paginatable?(instance) }
 
-      let(:resource) { Class.new(Fixably::ApplicationResource) }
+      let(:resource) do
+        stub_const(
+          "Fixably::FakeCustomer",
+          Class.new(Fixably::ApplicationResource)
+        )
+      end
 
       context "when the attributes confirm to the pagination interface" do
         let(:instance) do

@@ -18,7 +18,7 @@ Fixably::Customer.includes(:children).where(first_name: "Adam")
 ## Get a customer
 
 ```ruby
-Fixably::Customer.find(1000)
+Fixably::Customer.find(1_000)
 Fixably::Customer.first
 Fixably::Customer.last
 ```
@@ -62,7 +62,7 @@ customer.save!
 ## Update a customer
 
 ```ruby
-customer = Fixably::Customer.find(1000)
+customer = Fixably::Customer.find(1_000)
 customer.first_name = "Adam"
 
 customer.save

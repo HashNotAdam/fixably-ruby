@@ -28,32 +28,30 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       before do
         response.body = {
           "id" => 1,
-          "firstName" => "Jill",
-          "lastName" => "Wunsch",
+          "name" => "Fatima Kunze",
           "phone" => "1",
+          "serial_number" => "2",
         }.to_json
       end
 
       it "makes a POST request" do
         described_class.
-          create(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          create(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
 
         expect(connection).to have_received(:post).with(
           "/api/v3/#{uri}",
-          { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
+          { name: "Latashia Bergnaum", phone: "1", serialNumber: "2" }.to_json,
           anything
         )
       end
 
       it "updates the attributes based on the response" do
         result = described_class.
-          create(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          create(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
 
         expect(result.attributes).to eq(
-          {
-            "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
-            "phone" => "1",
-          }
+          "id" => 1, "name" => "Fatima Kunze", "phone" => "1",
+          "serial_number" => "2"
         )
       end
     end
@@ -62,32 +60,30 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       before do
         response.body = {
           "id" => 1,
-          "firstName" => "Jill",
-          "lastName" => "Wunsch",
+          "name" => "Fatima Kunze",
           "phone" => "1",
+          "serial_number" => "2",
         }.to_json
       end
 
       it "makes a POST request" do
         described_class.
-          create!(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          create!(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
 
         expect(connection).to have_received(:post).with(
           "/api/v3/#{uri}",
-          { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
+          { name: "Latashia Bergnaum", phone: "1", serialNumber: "2" }.to_json,
           anything
         )
       end
 
       it "updates the attributes based on the response" do
         result = described_class.
-          create!(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          create!(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
 
         expect(result.attributes).to eq(
-          {
-            "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
-            "phone" => "1",
-          }
+          "id" => 1, "name" => "Fatima Kunze", "phone" => "1",
+          "serial_number" => "2"
         )
       end
     end
@@ -865,9 +861,9 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
     before do
       response.body = {
         "id" => 1,
-        "firstName" => "Jill",
-        "lastName" => "Wunsch",
+        "name" => "Fatima Kunze",
         "phone" => "2",
+        "serial_number" => "3",
       }.to_json
     end
 
@@ -875,26 +871,26 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       context "when the record is new" do
         it "makes a POST request" do
           instance = described_class.
-            new(first_name: "Emilee", last_name: "Jerde", phone: "1")
+            new(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
           instance.save
 
           expect(connection).to have_received(:post).with(
             "/api/v3/#{uri}",
-            { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
+            {
+              name: "Latashia Bergnaum", phone: "1", serialNumber: "2",
+            }.to_json,
             anything
           )
         end
 
         it "updates the attributes based on the response" do
           instance = described_class.
-            new(first_name: "Emilee", last_name: "Jerde", phone: "1")
+            new(name: "Latashia Bergnaum", phone: "1", serial_number: "2")
           instance.save
 
           expect(instance.attributes).to eq(
-            {
-              "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
-              "phone" => "2",
-            }
+            "id" => 1, "name" => "Fatima Kunze", "phone" => "2",
+            "serial_number" => "3"
           )
         end
       end
@@ -914,29 +910,25 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
     if actions.include?(:update)
       context "when the record is being updated" do
         it "makes a PUT request" do
-          instance = described_class.
-            new(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          instance = described_class.new(phone: "1", serial_number: "2")
           instance.instance_variable_set(:@persisted, true)
           instance.save(validate: false)
 
           expect(connection).to have_received(:put).with(
             "/api/v3/#{uri}/",
-            { firstName: "Emilee", lastName: "Jerde", phone: "1" }.to_json,
+            { phone: "1", serialNumber: "2" }.to_json,
             anything
           )
         end
 
         it "updates the attributes based on the response" do
-          instance = described_class.
-            new(first_name: "Emilee", last_name: "Jerde", phone: "1")
+          instance = described_class.new(phone: "1", serial_number: "2")
           instance.instance_variable_set(:@persisted, true)
           instance.save
 
           expect(instance.attributes).to eq(
-            {
-              "id" => 1, "first_name" => "Jill", "last_name" => "Wunsch",
-              "phone" => "2",
-            }
+            "id" => 1, "name" => "Fatima Kunze", "phone" => "2",
+            "serial_number" => "3"
           )
         end
       end

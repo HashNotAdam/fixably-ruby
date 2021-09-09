@@ -17,7 +17,7 @@ Fixably::Order::Note.last(order_id: 1000)
 ## Create an order note
 
 ```ruby
-order = Fixably::Order.find(1000)
+order = Fixably::Order.find(1_000)
 note = Fixably::Order::Note.new(text: "New note", type: "INTERNAL")
 order.notes << note
 

@@ -7,7 +7,7 @@ The Fixably API does not allow users to be searched
 ## Get a user
 
 ```ruby
-Fixably::User.find(1000)
+Fixably::User.find(1_000)
 ```
 
 ## Create a user

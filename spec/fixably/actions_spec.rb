@@ -3,25 +3,28 @@
 RSpec.describe Fixably::Actions do
   let(:action_policy_double) { instance_double(Fixably::ActionPolicy) }
   let(:fake_has_one) do
-    Class.new(Fixably::ApplicationResource) do
-      def self.name = "FakeHasOne"
-    end
+    stub_const(
+      "Fixably::FakeHasOne",
+      Class.new(Fixably::ApplicationResource)
+    )
   end
   let(:fake_has_many) do
-    Class.new(Fixably::ApplicationResource) do
-      def self.name = "FakeHasMany"
-    end
+    stub_const(
+      "Fixably::FakeHasMany",
+      Class.new(Fixably::ApplicationResource)
+    )
   end
   let(:resource) do
     has_one_class_name = fake_has_one.name.underscore
     has_many_class_name = fake_has_many.name.underscore
 
-    Class.new(Fixably::ApplicationResource) do
-      def self.name = "FakeCustomer"
-
-      has_one :association, class_name: has_one_class_name
-      has_many :relation, class_name: has_many_class_name
-    end
+    stub_const(
+      "Fixably::FakeCustomer",
+      Class.new(Fixably::ApplicationResource) do
+        has_one :association, class_name: has_one_class_name
+        has_many :relation, class_name: has_many_class_name
+      end
+    )
   end
   let(:instance) { resource.new }
 

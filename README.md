@@ -56,7 +56,7 @@ interface.
 
 ```ruby
 customers = Fixably::Customer.all
-customer = Fixably::Customer.find(1000)
+customer = Fixably::Customer.find(1_000)
 customer = Fixably::Customer.first
 customer = Fixably::Customer.last
 

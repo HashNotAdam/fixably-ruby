@@ -3,10 +3,13 @@
 RSpec.describe Fixably::ResourceLazyLoader do
   let(:instance) { described_class.new(model: model) }
   let(:model) do
-    Class.new(Fixably::ApplicationResource) do
-      has_one :single_thing
-      has_many :many_things
-    end
+    stub_const(
+      "Fixably::FakeCustomer",
+      Class.new(Fixably::ApplicationResource) do
+        has_one :single_thing
+        has_many :many_things
+      end
+    )
   end
 
   it "accepts a class that extends ApplicationResource" do
