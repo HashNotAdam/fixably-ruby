@@ -39,5 +39,11 @@ module Fixably
 
       def api_version = "v3"
     end
+
+    def initialize(attributes = {}, persisted = false) # rubocop:disable Style/OptionalBooleanParameter
+      super(attributes, persisted)
+
+      self.class.site
+    end
   end
 end

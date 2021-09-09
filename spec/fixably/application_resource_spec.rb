@@ -60,4 +60,13 @@ RSpec.describe Fixably::ApplicationResource do
       end
     end
   end
+
+  describe "#initialize" do
+    before { allow(described_class).to receive(:site) }
+
+    it "ensures that the site URI is defined" do
+      resource.new
+      expect(described_class).to have_received(:site)
+    end
+  end
 end
