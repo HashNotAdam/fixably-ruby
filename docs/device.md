@@ -47,10 +47,10 @@ device = Fixably::Device.new(
 device.save!
 ```
 
-## Update a customer
+## Update a device
+
+The Fixably API does not allow devices to be updated
+
+## Destroy a device
 
 The Fixably API does not allow devices to be destroyed
-
-## Destroy a customer
-
-The Fixably API does not allow customers to be destroyed

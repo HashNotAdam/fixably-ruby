@@ -13,8 +13,10 @@ module Fixably
     has_one :contact, class_name: "fixably/order/contact"
     has_one :customer, class_name: "fixably/customer"
     has_one :device, class_name: "fixably/device"
-    has_one :ordered_by, class_name: "fixably/customer"
     has_one :handled_by, class_name: "fixably/customer"
+    has_one :ordered_by, class_name: "fixably/customer"
+    has_one :queue, class_name: "fixably/queue"
+    has_one :status, class_name: "fixably/status"
 
     has_many :lines, class_name: "fixably/order/line"
     has_many :notes, class_name: "fixably/order/note"
@@ -22,8 +24,6 @@ module Fixably
 
     # TODO
     # has_one :location
-    # has_one :queue
-    # has_one :status
     # has_one :store
 
     ALLOWED_INTERNAL_LOCATIONS =

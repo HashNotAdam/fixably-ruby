@@ -115,10 +115,13 @@ new endpoints. If you need access to another resource, let's chat.
 Currently supported resources:
 - Fixably::Customer ([documentation](docs/customer.md))
 - Fixably::Customer::Child ([documentation](docs/customer/child.md))
+- Fixably::Device ([documentation](docs/device.md))
 - Fixably::Order ([documentation](docs/order.md))
 - Fixably::Order::Line ([documentation](docs/order/line.md))
 - Fixably::Order::Note ([documentation](docs/order/note.md))
 - Fixably::Order::Task ([documentation](docs/order/task.md))
+- Fixably::Queue ([documentation](docs/queue.md))
+- Fixably::Status ([documentation](docs/status.md))
 - Fixably::User ([documentation](docs/user.md))
 
 ## Link expansion

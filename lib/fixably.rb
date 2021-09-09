@@ -12,6 +12,8 @@ require_relative "fixably/application_resource"
 require_relative "fixably/resources/customer"
 require_relative "fixably/resources/device"
 require_relative "fixably/resources/order"
+require_relative "fixably/resources/queue"
+require_relative "fixably/resources/status"
 require_relative "fixably/resources/user"
 
 module Fixably
