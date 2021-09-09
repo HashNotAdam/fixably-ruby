@@ -388,6 +388,12 @@ RSpec.describe Fixably::Actions do
         with(1, params: {})
     end
 
+    it "allows the ID to be supplied as a string" do
+      resource.find("1")
+      expect(ActiveResource::Base).to have_received(:find).
+        with("1", params: {})
+    end
+
     context "when expanded associations are supplied" do
       it "merges the supplied associations with items" do
         resource.find(1, expand: %i[association relation])

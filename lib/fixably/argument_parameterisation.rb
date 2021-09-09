@@ -21,7 +21,7 @@ module Fixably
       when :all, :first, :last
         assoc = associations(arguments)&.join(",")
         assoc ? "items(#{assoc})" : "items"
-      when :one, Integer, nil
+      when :one, nil, Integer, String
         associations(arguments)&.join(",")
       else
         raise ArgumentError, "Unknown scope: #{scope.inspect}"
