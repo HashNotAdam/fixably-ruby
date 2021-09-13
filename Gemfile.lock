@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fixably (0.1.0)
+    fixably (0.2.0)
       activeresource (~> 5)
 
 GEM
