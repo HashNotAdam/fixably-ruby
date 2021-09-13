@@ -37,6 +37,12 @@ Fixably::Order.includes(:handled_by).all
 Fixably::Order.includes(:handled_by).where(internal_location: "SERVICE")
 ```
 
+**Location**
+```ruby
+Fixably::Order.includes(:location).all
+Fixably::Order.includes(:location).where(internal_location: "SERVICE")
+```
+
 **Ordered by**
 ```ruby
 Fixably::Order.includes(:ordered_by).all

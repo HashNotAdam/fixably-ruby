@@ -116,6 +116,7 @@ Currently supported resources:
 - Fixably::Customer ([documentation](docs/customer.md))
 - Fixably::Customer::Child ([documentation](docs/customer/child.md))
 - Fixably::Device ([documentation](docs/device.md))
+- Fixably::Location ([documentation](docs/location.md))
 - Fixably::Order ([documentation](docs/order.md))
 - Fixably::Order::Line ([documentation](docs/order/line.md))
 - Fixably::Order::Note ([documentation](docs/order/note.md))
