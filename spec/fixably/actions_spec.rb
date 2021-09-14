@@ -22,6 +22,7 @@ RSpec.describe Fixably::Actions do
       "Fixably::FakeCustomer",
       Class.new(Fixably::ApplicationResource) do
         has_one :association, class_name: has_one_class_name
+        has_one :name_with_underscores, class_name: has_one_class_name
         has_many :relation, class_name: has_many_class_name
       end
     )
@@ -399,6 +400,14 @@ RSpec.describe Fixably::Actions do
         resource.find(1, expand: %i[association relation])
         expect(ActiveResource::Base).to have_received(:find).
           with(1, params: { expand: "association,relation(items)" })
+      end
+
+      context "when the association name includes underscores" do
+        it "camelizes the name" do
+          resource.find(1, expand: %i[name_with_underscores])
+          expect(ActiveResource::Base).to have_received(:find).
+            with(1, params: { expand: "nameWithUnderscores" })
+        end
       end
 
       context "when expand is a string" do

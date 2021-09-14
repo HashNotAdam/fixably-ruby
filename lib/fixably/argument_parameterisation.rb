@@ -33,12 +33,13 @@ module Fixably
     end
 
     def expand_association(association)
+      association_name = association.to_s.camelize(:lower)
       relationship = reflections.fetch(association).macro
       case relationship
       when :has_one
-        association
+        association_name
       when :has_many
-        "#{association}(items)"
+        "#{association_name}(items)"
       else
         raise ArgumentError, "Unknown relationship, #{relationship}"
       end
