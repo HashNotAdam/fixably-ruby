@@ -79,7 +79,7 @@ Fixably::Order.includes(:tasks).all
 Fixably::Order.includes(:tasks).where(internal_location: "SERVICE")
 ```
 
-## Get a customer
+## Get an order
 
 ```ruby
 Fixably::Order.find(1_000)

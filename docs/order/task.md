@@ -3,15 +3,15 @@
 ## List order tasks
 
 ```ruby
-Fixably::Order::Task.all(order_id: 1000)
+Fixably::Order::Task.all(order_id: 1_000)
 ```
 
 ## Get an order task
 
 ```ruby
-Fixably::Order::Task.find(1000, order_id: 1000)
-Fixably::Order::Task.first(order_id: 1000)
-Fixably::Order::Task.last(order_id: 1000)
+Fixably::Order::Task.find(1_000, order_id: 1_000)
+Fixably::Order::Task.first(order_id: 1_000)
+Fixably::Order::Task.last(order_id: 1_000)
 ```
 
 ## Create an order task

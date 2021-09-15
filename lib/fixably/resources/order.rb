@@ -71,6 +71,8 @@ module Fixably
         string :text
         string :type
       end
+
+      has_one :created_by, class_name: "fixably/user"
     end
 
     class Task < ApplicationResource

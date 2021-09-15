@@ -7,7 +7,7 @@ The Fixably API does not allow children to be searched
 ## Get a child
 
 ```ruby
-Fixably::Customer::Child.find(1000, customer_id: 1000)
+Fixably::Customer::Child.find(1_000, customer_id: 1_000)
 ```
 
 ## Create a child

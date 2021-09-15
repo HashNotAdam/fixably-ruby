@@ -3,15 +3,15 @@
 ## List order lines
 
 ```ruby
-Fixably::Order::Line.all(order_id: 1000)
+Fixably::Order::Line.all(order_id: 1_000)
 ```
 
 ## Get an order line
 
 ```ruby
-Fixably::Order::Line.find(1000, order_id: 1000)
-Fixably::Order::Line.first(order_id: 1000)
-Fixably::Order::Line.last(order_id: 1000)
+Fixably::Order::Line.find(1_000, order_id: 1_000)
+Fixably::Order::Line.first(order_id: 1_000)
+Fixably::Order::Line.last(order_id: 1_000)
 ```
 
 ## Create an order line

@@ -179,7 +179,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       if includes_has_one
         describe "has_one link expansion" do
           let(:expansion) do
-            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
+            has_one_associations.map { _1.to_s.camelize(:lower) }.join(",")
           end
 
           it "nests the associations under items" do
@@ -244,10 +247,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one && includes_has_many
         describe "both has_one and has_many link expansion" do
-          it "nests the both has_one and has_many associations" do
+          let(:expansion) do
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
             has_one = has_one_associations.join(",")
             has_many = has_many_associations.map { "#{_1}(items)" }.join(",")
-            expansion = { expand: "items(#{has_one},#{has_many})" }.to_query
+            "#{has_one},#{has_many}".camelize(:lower)
+          end
+
+          it "nests the both has_one and has_many associations" do
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             has_many_associations.each { chain = chain.includes(_1) }
@@ -293,12 +302,13 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       if includes_has_one
         describe "has_one link expansion" do
           let(:expansion) do
-            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
+            has_one_associations.map { _1.to_s.camelize(:lower) }.join(",")
           end
 
           it "nests the associations under items" do
-            expansion = { expand: "items(#{has_one_associations.join(",")})" }.
-              to_query
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             chain.first
@@ -360,10 +370,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one && includes_has_many
         describe "both has_one and has_many link expansion" do
-          it "nests the both has_one and has_many associations" do
+          let(:expansion) do
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
             has_one = has_one_associations.join(",")
             has_many = has_many_associations.map { "#{_1}(items)" }.join(",")
-            expansion = { expand: "items(#{has_one},#{has_many})" }.to_query
+            "#{has_one},#{has_many}".camelize(:lower)
+          end
+
+          it "nests the both has_one and has_many associations" do
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             has_many_associations.each { chain = chain.includes(_1) }
@@ -424,7 +440,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       if includes_has_one
         describe "has_one link expansion" do
           let(:expansion) do
-            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
+            has_one_associations.map { _1.to_s.camelize(:lower) }.join(",")
           end
 
           it "nests the associations under items" do
@@ -489,10 +508,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one && includes_has_many
         describe "both has_one and has_many link expansion" do
-          it "nests the both has_one and has_many associations" do
+          let(:expansion) do
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
             has_one = has_one_associations.join(",")
             has_many = has_many_associations.map { "#{_1}(items)" }.join(",")
-            expansion = { expand: "items(#{has_one},#{has_many})" }.to_query
+            "#{has_one},#{has_many}".camelize(:lower)
+          end
+
+          it "nests the both has_one and has_many associations" do
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             has_many_associations.each { chain = chain.includes(_1) }
@@ -542,7 +567,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       if includes_has_one
         describe "has_one link expansion" do
           let(:expansion) do
-            { expand: "items(#{has_one_associations.join(",")})" }.to_query
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
+            has_one_associations.map { _1.to_s.camelize(:lower) }.join(",")
           end
 
           it "nests the associations under items" do
@@ -607,10 +635,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one && includes_has_many
         describe "both has_one and has_many link expansion" do
-          it "nests the both has_one and has_many associations" do
+          let(:expansion) do
+            { expand: "items(#{associations})" }.to_query
+          end
+          let(:associations) do
             has_one = has_one_associations.join(",")
             has_many = has_many_associations.map { "#{_1}(items)" }.join(",")
-            expansion = { expand: "items(#{has_one},#{has_many})" }.to_query
+            "#{has_one},#{has_many}".camelize(:lower)
+          end
+
+          it "nests the both has_one and has_many associations" do
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             has_many_associations.each { chain = chain.includes(_1) }
@@ -730,7 +764,10 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
       if includes_has_one
         describe "has_one link expansion" do
           let(:expansion) do
-            { expand: has_one_associations.join(",") }.to_query
+            { expand: associations }.to_query
+          end
+          let(:associations) do
+            has_one_associations.map { _1.to_s.camelize(:lower) }.join(",")
           end
 
           it "nests the associations under items" do
@@ -795,10 +832,16 @@ RSpec.shared_examples "a resource" do |name, uri, actions|
 
       if includes_has_one && includes_has_many
         describe "both has_one and has_many link expansion" do
-          it "nests the both has_one and has_many associations" do
+          let(:expansion) do
+            { expand: associations }.to_query
+          end
+          let(:associations) do
             has_one = has_one_associations.join(",")
             has_many = has_many_associations.map { "#{_1}(items)" }.join(",")
-            expansion = { expand: "#{has_one},#{has_many}" }.to_query
+            "#{has_one},#{has_many}".camelize(:lower)
+          end
+
+          it "nests the both has_one and has_many associations" do
             chain = described_class
             has_one_associations.each { chain = chain.includes(_1) }
             has_many_associations.each { chain = chain.includes(_1) }
