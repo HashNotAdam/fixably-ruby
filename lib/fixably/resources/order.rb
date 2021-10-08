@@ -39,6 +39,15 @@ module Fixably
       allow_nil: true
     )
 
+    protected
+
+    def remove_has_many_associations(attrs)
+      reflections.select { |_, reflection| reflection.macro.equal?(:has_many) }.
+        keys.
+        reject { _1.equal?(:notes) }.
+        each { attrs.delete(_1) }
+    end
+
     class Contact < ApplicationResource
       schema do
         string :full_name

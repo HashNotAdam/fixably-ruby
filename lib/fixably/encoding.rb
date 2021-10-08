@@ -17,13 +17,13 @@ module Fixably
 
     def remove_on_encode = %w[created_at href id]
 
-    private
-
     def remove_has_many_associations(attrs)
       reflections.select { _2.macro.equal?(:has_many) }.keys.each do
         attrs.delete(_1)
       end
     end
+
+    private
 
     def remove_unallowed_parameters(attrs)
       remove_on_encode.each { attrs.delete(_1) }
