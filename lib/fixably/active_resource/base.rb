@@ -20,8 +20,8 @@ module ActiveResource
       def query_string(options)
         opts = {}
 
-        non_query_parameters.each do
-          opts[_1] = options.fetch(_1) if options[_1]
+        non_query_parameters.each do |parameter|
+          opts[parameter] = options.fetch(parameter) if options[parameter]
         end
 
         f = filters(options)

@@ -157,7 +157,7 @@ RSpec.describe Fixably::Actions do
 
     context "when supplying something that can't be converted into an Array" do
       it "raises an ArgumentError" do
-        expect { resource.actions(OpenStruct.new) }.to raise_error(
+        expect { resource.actions(Class.new) }.to raise_error(
           ArgumentError,
           "actions should be able to be converted into an Array or a Symbol"
         )

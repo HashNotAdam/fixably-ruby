@@ -8,7 +8,9 @@ RSpec.describe Fixably::Logger do
       context "when Rails responds to logger" do
         let(:logger) { Logger.new(nil) }
 
-        before { stub_const("Rails", OpenStruct.new(logger: logger)) }
+        before do
+          stub_const("Rails", Struct.new(:logger).new(logger))
+        end
 
         it "uses the Rails logger" do
           expect(described_class.logger).to eq logger
@@ -16,7 +18,7 @@ RSpec.describe Fixably::Logger do
       end
 
       context "when Rails does not respond to logger" do
-        before { stub_const("Rails", OpenStruct.new) }
+        before { stub_const("Rails", Class.new) }
 
         it "uses the Ruby logger" do
           expect(described_class.logger).to be_a(Logger)
@@ -51,7 +53,7 @@ RSpec.describe Fixably::Logger do
     end
 
     context "when the logger is set by the user" do
-      let(:logger) { OpenStruct.new }
+      let(:logger) { Class.new }
 
       before { described_class.logger = logger }
 
@@ -62,7 +64,7 @@ RSpec.describe Fixably::Logger do
   end
 
   describe "message delegation" do
-    let(:logger) { OpenStruct.new(info: nil) }
+    let(:logger) { Struct.new(:info).new(nil) }
 
     before do
       allow(logger).to receive(:info)

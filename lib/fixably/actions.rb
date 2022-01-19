@@ -103,8 +103,8 @@ module Fixably
           )
         end
 
-        Array.wrap(values).map do
-          action = _1.to_sym
+        Array.wrap(values).map do |value|
+          action = value.to_sym
 
           unless allowed_actions.include?(action)
             raise ArgumentError, "Unsupported action, #{action}, supplied"

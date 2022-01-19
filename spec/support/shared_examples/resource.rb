@@ -3,10 +3,16 @@
 RSpec.shared_examples "a resource" do |name, uri, actions|
   let(:connection) { instance_double(ActiveResource::Connection) }
   let(:has_one_associations) do
-    described_class.reflections.select { _2.macro.equal?(:has_one) }.keys
+    reflections = described_class.reflections.select do |_name, reflection|
+      reflection.macro.equal?(:has_one)
+    end
+    reflections.keys
   end
   let(:has_many_associations) do
-    described_class.reflections.select { _2.macro.equal?(:has_many) }.keys
+    reflections = described_class.reflections.select do |_name, reflection|
+      reflection.macro.equal?(:has_many)
+    end
+    reflections.keys
   end
   let(:response) { Net::HTTPOK.new(1, 200, "") }
 

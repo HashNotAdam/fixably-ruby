@@ -18,8 +18,12 @@ module Fixably
     def remove_on_encode = %w[created_at href id]
 
     def remove_has_many_associations(attrs)
-      reflections.select { _2.macro.equal?(:has_many) }.keys.each do
-        attrs.delete(_1)
+      has_many_reflections = reflections.select do |_name, reflection|
+        reflection.macro.equal?(:has_many)
+      end
+
+      has_many_reflections.each_key do |reflection_name|
+        attrs.delete(reflection_name)
       end
     end
 
