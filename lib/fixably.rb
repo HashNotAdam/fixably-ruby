@@ -35,4 +35,6 @@ module Fixably
       config.logger
     end
   end
+
+  ActiveSupport.run_load_hooks(:fixably, self) if defined?(ActiveSupport)
 end

@@ -64,7 +64,7 @@ module Fixably
     class Note < ApplicationResource
       actions %i[create list show]
 
-      ALLOWED_TYPES = %w[DIAGNOSIS INTERNAL ISSUE RESOLUTION].freeze
+      ALLOWED_TYPES = %w[DIAGNOSIS DETAILS INTERNAL ISSUE RESOLUTION].freeze
 
       validates(
         :type,
