@@ -2,7 +2,7 @@
 
 module Fixably
   class Order < ApplicationResource
-    actions %i[create list show]
+    actions %i[create list show update]
 
     schema do
       string :internal_location

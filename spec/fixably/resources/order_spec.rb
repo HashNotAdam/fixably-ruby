@@ -5,7 +5,7 @@ RSpec.describe Fixably::Order do
     "a resource",
     "order",
     "orders",
-    %i[create list show]
+    %i[create list show update]
   )
 
   describe "validation" do
