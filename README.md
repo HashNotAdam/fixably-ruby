@@ -217,6 +217,26 @@ replace the example values:
 cp .env.example .env
 ```
 
+### Mutation testing
+
+Mutation testing uses [mutant](https://github.com/mbj/mutant), which requires a
+licence. Since each developer needs their own token, no token is committed to
+this repository; supply yours via Bundler's credential config:
+
+```sh
+bundle config set --global gem.mutant.dev com:YOUR_TOKEN
+```
+
+or, more conveniently in CI, the equivalent environment variable:
+
+```sh
+BUNDLE_GEM__MUTANT__DEV="com:YOUR_TOKEN"
+```
+
+If no token is configured, the licence gem is skipped so that `bundle install`
+still succeeds. Only `bundle exec mutant` is unavailable; `rake` and the RSpec
+suite are unaffected.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

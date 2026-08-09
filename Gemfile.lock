@@ -6,7 +6,7 @@ PATH
       logger (~> 1.6)
 
 GEM
-  remote: https://com:jE6Df8B6dPoghEjlbPTiQzMi34dvbO12@gem.mutant.dev/
+  remote: https://gem.mutant.dev/
   specs:
     mutant-license (0.1.1.1.2753182086109243616824084045621781286745.0)
 
