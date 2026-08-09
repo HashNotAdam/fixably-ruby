@@ -27,6 +27,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activeresource", ">= 5", "< 7"
+  # Removed from the default gems in Ruby 4.0
+  spec.add_dependency "logger", "~> 1.6"
 
   spec.add_development_dependency "mutant-rspec", "~> 0.10"
   spec.add_development_dependency "pry-byebug"

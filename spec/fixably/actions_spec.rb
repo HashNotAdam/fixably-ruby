@@ -166,9 +166,11 @@ RSpec.describe Fixably::Actions do
 
     context "when supplying values that can't be converted into Symbols" do
       it "raises an NoMethodError" do
+        # Ruby 3.4 reworded the message from "for nil:NilClass" to "for nil"
+        # and switched from a backtick to a single quote
         expect { resource.actions([nil]) }.to raise_error(
           NoMethodError,
-          "undefined method `to_sym' for nil:NilClass"
+          /undefined method ['`]to_sym' for nil/
         )
       end
     end
@@ -179,7 +181,7 @@ RSpec.describe Fixably::Actions do
       allow(Fixably::ActionPolicy).
         to receive(:new).and_return(action_policy_double)
       allow(action_policy_double).to receive(:list!).and_return(true)
-      allow(ActiveResource::Base).to receive(:all)
+      allow(ActiveResource::Base).to receive(:find)
     end
 
     it "validates that the request is supported" do
@@ -189,16 +191,19 @@ RSpec.describe Fixably::Actions do
       expect(action_policy_double).to have_received(:list!)
     end
 
-    it "forwards the message to the superclass" do
+    it "forwards the message to the superclass as an all scoped find" do
       resource.all(argument1: "A", argument2: "B")
-      expect(ActiveResource::Base).
-        to have_received(:all).with(argument1: "A", argument2: "B")
+      expect(ActiveResource::Base).to have_received(:find).with(
+        :all,
+        params: { argument1: "A", argument2: "B", expand: "items" }
+      )
     end
 
     context "when no arguments are supplied" do
-      it "passes no arguments" do
+      it "passes only a request to expand items" do
         resource.all
-        expect(ActiveResource::Base).to have_received(:all).with(no_args)
+        expect(ActiveResource::Base).
+          to have_received(:find).with(:all, params: { expand: "items" })
       end
     end
   end

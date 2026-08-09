@@ -24,9 +24,13 @@ module Fixably
         @actions = format_actions(values).freeze
       end
 
+      # Active Resource 6.1 made ::all lazy, returning a relation rather than
+      # performing the request. We call ::find directly so that a
+      # PaginatedCollection is always returned, regardless of the Active
+      # Resource version.
       def all(*arguments)
         ActionPolicy.new(resource: self).list!
-        super(*arguments)
+        find(:all, *arguments)
       end
 
       def create(attributes = {})
