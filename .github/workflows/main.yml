@@ -11,6 +11,9 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: "4.0"
-        bundler-cache: true
+    # The lockfile names mutant-license, which the Gemfile only asks for given a licence token, and CI has none, so a
+    # frozen install would refuse it
+    - name: Install dependencies
+      run: bundle install
     - name: Run the default task
       run: bundle exec rake
