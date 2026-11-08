@@ -15,7 +15,7 @@ gemspec
 if Bundler.settings["gem.mutant.dev"]
   group :development do
     source "https://gem.mutant.dev" do
-      gem "mutant-license"
+      gem "mutant-license" # rubocop:disable Gemspec/DevelopmentDependencies
     end
   end
 end

@@ -40,19 +40,16 @@ RSpec.describe Fixably::Customer do
   end
 
   describe "#encode" do
-    attributes = {
-      "id" => 1,
-      "href" => "https://...",
-      "first_name" => "Jill",
-      "tags" => [],
-      "created_at" => "2000-01-01",
-    }
-    encoded_attributes = { "firstName" => "Jill" }
-
     include_examples(
       "an Active Resource encoder",
-      attributes,
-      encoded_attributes
+      {
+        "id" => 1,
+        "href" => "https://...",
+        "first_name" => "Jill",
+        "tags" => [],
+        "created_at" => "2000-01-01",
+      },
+      { "firstName" => "Jill" }
     )
   end
 end

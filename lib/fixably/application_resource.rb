@@ -19,7 +19,7 @@ module Fixably
     class << self
       def site
         self.site = site_url unless _site_defined?
-        super()
+        super
       end
 
       protected
@@ -41,7 +41,7 @@ module Fixably
     end
 
     def initialize(attributes = {}, persisted = false) # rubocop:disable Style/OptionalBooleanParameter
-      super(attributes, persisted)
+      super
 
       self.class.site
     end

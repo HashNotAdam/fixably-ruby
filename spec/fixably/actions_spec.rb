@@ -362,7 +362,7 @@ RSpec.describe Fixably::Actions do
 
     context "when the record does not exist" do
       before do
-        error = ::ActiveResource::ResourceNotFound.new({})
+        error = ActiveResource::ResourceNotFound.new({})
         allow(resource).to receive(:find).and_raise(error)
       end
 

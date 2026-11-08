@@ -31,7 +31,7 @@ RSpec.describe Fixably::Logger do
         end
 
         it "sets the log level to WARN" do
-          expect(described_class.logger.level).to be(::Logger::WARN)
+          expect(described_class.logger.level).to be(Logger::WARN)
         end
       end
     end
@@ -42,7 +42,7 @@ RSpec.describe Fixably::Logger do
       end
 
       it "sets the log level to WARN" do
-        expect(described_class.logger.level).to be(::Logger::WARN)
+        expect(described_class.logger.level).to be(Logger::WARN)
       end
 
       it "logs to stdout" do

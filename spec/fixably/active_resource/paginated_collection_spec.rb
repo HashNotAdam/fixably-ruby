@@ -28,7 +28,7 @@ RSpec.describe Fixably::ActiveResource::PaginatedCollection do
   end
 
   it "is an ActiveResource::Collection" do
-    expect(described_class.ancestors).to include(::ActiveResource::Collection)
+    expect(described_class.ancestors).to include(ActiveResource::Collection)
   end
 
   describe ".paginatable?" do

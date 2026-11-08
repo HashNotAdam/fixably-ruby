@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-performance
   - rubocop-rspec
 
@@ -8,6 +8,9 @@ AllCops:
     - Rakefile
     - bin/**/*
   NewCops: enable
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
 
 Layout/DotPosition:
   EnforcedStyle: trailing
@@ -20,7 +23,7 @@ Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
 
 Layout/LineLength:
-  IgnoredPatterns:
+  AllowedPatterns:
     - \#\s
 
 Layout/MultilineMethodCallIndentation:
@@ -68,9 +71,14 @@ RSpec/BeforeAfterAll:
 RSpec/ExampleLength:
   Max: 10
 
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
   Exclude:
     - "spec/fixably/resources/**/*"
+
+# The shared examples take arguments and are included into the example group,
+# where the including spec's lets apply to them
+RSpec/IncludeExamples:
+  Enabled: false
 
 RSpec/LetSetup:
   Enabled: false

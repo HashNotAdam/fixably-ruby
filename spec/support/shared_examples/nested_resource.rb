@@ -10,9 +10,7 @@ RSpec.shared_examples(
 
   before do
     allow(described_class).to receive(:connection).and_return(connection)
-    allow(connection).to receive(:get).and_return(response)
-    allow(connection).to receive(:post).and_return(response)
-    allow(connection).to receive(:put).and_return(response)
+    allow(connection).to receive_messages(get: response, post: response, put: response)
     response.instance_variable_set(:@read, true)
   end
 
