@@ -2,7 +2,7 @@
 
 RSpec.describe Fixably do
   it "has a version number" do
-    expect(Fixably::VERSION).not_to be nil
+    expect(Fixably::VERSION).not_to be_nil
   end
 
   describe ".config" do

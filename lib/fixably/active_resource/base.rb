@@ -25,7 +25,7 @@ module ActiveResource
         end
 
         f = filters(options)
-        opts[:q] = f.join(",") unless f.count.zero?
+        opts[:q] = f.join(",") unless f.empty?
 
         original_query_string(opts)
       end

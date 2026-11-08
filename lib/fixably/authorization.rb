@@ -3,7 +3,7 @@
 module Fixably
   module Authorization
     def headers
-      result = super()
+      result = super
       result["Authorization"] = api_key
       result
     end

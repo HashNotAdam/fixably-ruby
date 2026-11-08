@@ -3,14 +3,13 @@
 module Fixably
   module LoadFromResponse
     # Fixably returns collections as hashes which confuses Active Resource
-    # rubocop:disable Style/OptionalBooleanParameter
+    # rubocop:disable-next Style/OptionalBooleanParameter
     def load(attributes, remove_root = false, persisted = false)
-      super(attributes, remove_root, persisted)
+      super
       load_nested_paginated_collections
       remove_empty_associations
       self
     end
-    # rubocop:enable Style/OptionalBooleanParameter
 
     protected
 

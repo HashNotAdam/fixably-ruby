@@ -35,17 +35,17 @@ module Fixably
 
       def create(attributes = {})
         ActionPolicy.new(resource: self).create!
-        super(attributes)
+        super
       end
 
       def create!(attributes = {})
         ActionPolicy.new(resource: self).create!
-        super(attributes)
+        super
       end
 
       def delete(id, options = {})
         ActionPolicy.new(resource: self).delete!
-        super(id, options)
+        super
       end
 
       def exists?(id, options = {})
@@ -98,7 +98,7 @@ module Fixably
 
       private
 
-      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable-next Metrics/MethodLength
       def format_actions(values)
         unless values.respond_to?(:to_sym) || values.respond_to?(:to_a)
           raise(
@@ -117,14 +117,13 @@ module Fixably
           action
         end
       end
-      # rubocop:enable Metrics/MethodLength
 
       def allowed_actions = %i[create delete list show update]
     end
 
     def destroy
       ActionPolicy.new(resource: self).delete!
-      super()
+      super
     end
 
     def save(validate: true)
@@ -136,7 +135,7 @@ module Fixably
       super()
     end
 
-    # rubocop:disable Style/RaiseArgs
+    # rubocop:disable-next Style/RaiseArgs
     def save!
       if new?
         ActionPolicy.new(resource: self).create!
@@ -147,6 +146,5 @@ module Fixably
       save(validate: false) ||
         raise(::ActiveResource::ResourceInvalid.new(self))
     end
-    # rubocop:enable Style/RaiseArgs
   end
 end

@@ -29,18 +29,15 @@ RSpec.describe Fixably::Encoding do
       )
     end
 
-    attributes = {
-      "id" => 1,
-      "href" => "https://...",
-      "first_name" => "Jill",
-      "created_at" => "2000-01-01",
-    }
-    encoded_attributes = { "firstName" => "Jill" }
-
     include_examples(
       "an Active Resource encoder",
-      attributes,
-      encoded_attributes
+      {
+        "id" => 1,
+        "href" => "https://...",
+        "first_name" => "Jill",
+        "created_at" => "2000-01-01",
+      },
+      { "firstName" => "Jill" }
     )
 
     context "when the resource has has_one associations" do
@@ -71,11 +68,11 @@ RSpec.describe Fixably::Encoding do
     context "when the resource has has_many associations" do
       let(:instance) do
         inst = described_class.new(id: 1, name: "Main thing")
-        inst.attributes[:many_things] = ::ActiveResource::Collection.new([
+        inst.attributes[:many_things] = ActiveResource::Collection.new([
           { id: 2, name: "Thing 2" },
           { id: 3, name: "Thing 3" },
         ])
-        inst.attributes[:other_things] = ::ActiveResource::Collection.new([
+        inst.attributes[:other_things] = ActiveResource::Collection.new([
           { id: 4, name: "Thing 4" },
           { id: 5, name: "Thing 5" },
         ])

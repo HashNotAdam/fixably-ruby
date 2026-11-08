@@ -28,7 +28,7 @@ RSpec.describe Fixably::ActiveResource::PaginatedCollection do
   end
 
   it "is an ActiveResource::Collection" do
-    expect(described_class.ancestors).to include(::ActiveResource::Collection)
+    expect(described_class.ancestors).to include(ActiveResource::Collection)
   end
 
   describe ".paginatable?" do
@@ -421,6 +421,23 @@ RSpec.describe Fixably::ActiveResource::PaginatedCollection do
       )
     end
 
+    context "when the records are nested under another resource" do
+      before do
+        instance.each { _1.prefix_options = { order_id: 1 } }
+      end
+
+      let(:items) do
+        [Fixably::Order::File.new(id: 1), Fixably::Order::File.new(id: 2)]
+      end
+
+      it "keeps the parent in the request" do
+        allow(instance).to receive(:where)
+        instance.next_page
+        expect(instance).to have_received(:where).
+          with(order_id: 1, limit: 25, offset: 25)
+      end
+    end
+
     context "when there are no more pages" do
       let(:total_items) { 5 }
 
@@ -526,6 +543,23 @@ RSpec.describe Fixably::ActiveResource::PaginatedCollection do
       expect(resource).to have_received(:where).with(
         first_name: "Lawrence", expand: "items", limit: 25, offset: 25
       )
+    end
+
+    context "when the records are nested under another resource" do
+      before do
+        instance.each { _1.prefix_options = { order_id: 1 } }
+      end
+
+      let(:items) do
+        [Fixably::Order::File.new(id: 1), Fixably::Order::File.new(id: 2)]
+      end
+
+      it "keeps the parent in the request" do
+        allow(instance).to receive(:where)
+        instance.previous_page
+        expect(instance).to have_received(:where).
+          with(order_id: 1, limit: 25, offset: 50)
+      end
     end
 
     context "when there are no more pages" do
