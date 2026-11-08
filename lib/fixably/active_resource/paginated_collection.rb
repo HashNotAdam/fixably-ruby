@@ -65,7 +65,7 @@ module Fixably
       def next_page
         raise StopIteration, "There are no more pages" unless next_page?
 
-        where(limit: limit, offset: offset + limit)
+        where(page_params(limit: limit, offset: offset + limit))
       end
 
       def next_page?
@@ -80,11 +80,23 @@ module Fixably
         new_limit += new_offset if new_offset.negative?
         new_offset = 0 if new_offset.negative?
 
-        where(limit: new_limit, offset: new_offset)
+        where(page_params(limit: new_limit, offset: new_offset))
       end
 
       def previous_page?
         offset.positive?
+      end
+
+      private
+
+      # Active Resource keeps a nested resource's prefix, such as an order
+      # file's order_id, on each record rather than with the collection's
+      # params, so another page of a nested list would otherwise lose its path.
+      def page_params(params)
+        record = first
+        return params unless record.respond_to?(:prefix_options)
+
+        record.prefix_options.merge(params)
       end
     end
   end
