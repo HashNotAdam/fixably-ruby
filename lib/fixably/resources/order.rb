@@ -57,6 +57,14 @@ module Fixably
       end
     end
 
+    # Fixably lists a file only under its order, and leaves quarantined files
+    # out. Each file's url is a download link that lasts an hour.
+    class File < ApplicationResource
+      actions :list
+
+      has_one :created_by, class_name: "fixably/user"
+    end
+
     class Line < ApplicationResource
       actions %i[list show]
     end

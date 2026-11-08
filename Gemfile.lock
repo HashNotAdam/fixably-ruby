@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fixably (0.7.0)
+    fixably (0.8.0)
       activeresource (>= 5, < 7)
       logger (~> 1.6)
 

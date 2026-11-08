@@ -118,6 +118,7 @@ Currently supported resources:
 - Fixably::Device ([documentation](docs/device.md))
 - Fixably::Location ([documentation](docs/location.md))
 - Fixably::Order ([documentation](docs/order.md))
+- Fixably::Order::File ([documentation](docs/order/file.md))
 - Fixably::Order::Line ([documentation](docs/order/line.md))
 - Fixably::Order::Note ([documentation](docs/order/note.md))
 - Fixably::Order::Task ([documentation](docs/order/task.md))
